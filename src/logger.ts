@@ -30,16 +30,16 @@ export enum Label {
 
 export let logger: winston.Logger;
 
-const REDACTED_MSG = "[REDACTED]";
-const ERROR_PREFIX_REGEX = /^\s*error:\s*/i;
+var REDACTED_MSG = "[REDACTED]";
+var ERROR_PREFIX_REGEX = /^\s*error:\s*/i;
 
 function redactUrlPassword(message: string, urlStr: string) {
 	let url: URL;
 	try {
 		url = new URL(urlStr);
 		if (url.password) {
-			const urlDecodedPassword = decodeURIComponent(url.password);
-			const urlEncodedPassword = encodeURIComponent(url.password);
+			var urlDecodedPassword = decodeURIComponent(url.password);
+			var urlEncodedPassword = encodeURIComponent(url.password);
 			message = message.split(url.password).join(REDACTED_MSG);
 			message = message.split(urlDecodedPassword).join(REDACTED_MSG);
 			message = message.split(urlEncodedPassword).join(REDACTED_MSG);
@@ -75,12 +75,12 @@ function redactMessage(
 		/\/notification\/crossSeed\/[a-zA-Z-0-9_-]+/g,
 		`/notification/crossSeed/${REDACTED_MSG}`,
 	);
-	for (const [key, value] of Object.entries(options)) {
+	for (var [key, value] of Object.entries(options)) {
 		if (key.endsWith("Url") && typeof value === "string") {
 			ret = redactUrlPassword(ret, value);
 		}
 		if (key === "torrentClients" && Array.isArray(value)) {
-			for (const clientEntry of value) {
+			for (var clientEntry of value) {
 				ret = redactUrlPassword(
 					ret,
 					parseClientEntry(clientEntry)!.url,
@@ -98,7 +98,7 @@ function stripAnsiChars(message: string | unknown) {
 	return stripAnsi(message);
 }
 
-const logOnceCache: Set<string> = new Set();
+var logOnceCache: Set<string> = new Set();
 
 export function logOnce(cacheKey: string, cb: () => void, ttl?: number) {
 	if (!logOnceCache.has(cacheKey)) {
@@ -125,7 +125,7 @@ export function initializeLogger(options: Record<string, unknown>): void {
 			winston.format.splat(),
 			winston.format.printf(
 				({ level, message, label, timestamp, stack, cause }) => {
-					const msg = !stack
+					var msg = !stack
 						? `${message}${cause ? `\n${cause}` : ""}`
 						: `${stack}${cause ? `\n${cause}` : ""}`.replace(
 								ERROR_PREFIX_REGEX,
@@ -176,7 +176,7 @@ export function initializeLogger(options: Record<string, unknown>): void {
 							stack,
 							cause,
 						}) => {
-							const msg = !stack
+							var msg = !stack
 								? `${message}${cause ? `\n${cause}` : ""}`
 								: `${stack}${cause ? `\n${cause}` : ""}`.replace(
 										ERROR_PREFIX_REGEX,
