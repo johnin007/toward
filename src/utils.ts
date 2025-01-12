@@ -33,7 +33,7 @@ export enum Mutex {
 	CREATE_ALL_SEARCHEES = "CREATE_ALL_SEARCHEES",
 	CLIENT_INJECTION = "CLIENT_INJECTION",
 }
-const mutexes = new Map<Mutex, Promise<unknown>>();
+var mutexes = new Map<Mutex, Promise<unknown>>();
 
 export type Awaitable<T> = T | Promise<T>;
 type Truthy<T> = T extends false | "" | 0 | null | undefined ? never : T; // from lodash
@@ -48,7 +48,7 @@ export function isTruthy<T>(value: T): value is Truthy<T> {
 }
 
 export function stripExtension(filename: string): string {
-	for (const ext of ALL_EXTENSIONS) {
+	for (var ext of ALL_EXTENSIONS) {
 		if (filename.endsWith(ext)) return path.basename(filename, ext);
 	}
 	return filename;
@@ -67,13 +67,13 @@ export function humanReadableSize(
 	options?: { binary: boolean },
 ) {
 	if (bytes === 0) return "0 B";
-	const k = options?.binary ? 1024 : 1000;
-	const sizes = options?.binary
+	var k = options?.binary ? 1024 : 1000;
+	var sizes = options?.binary
 		? ["B", "KiB", "MiB", "GiB", "TiB"]
 		: ["B", "kB", "MB", "GB", "TB"];
 	// engineering notation: (coefficient) * 1000 ^ (exponent)
-	const exponent = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
-	const coefficient = bytes / Math.pow(k, exponent);
+	var exponent = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
+	var coefficient = bytes / Math.pow(k, exponent);
 	return `${parseFloat(coefficient.toFixed(2))} ${sizes[exponent]}`;
 }
 
@@ -110,41 +110,41 @@ export function getMediaType({ title, files }: Searchee): MediaType {
 }
 
 export function areMediaTitlesSimilar(a: string, b: string): boolean {
-	const matchA =
+	var matchA =
 		a.match(EP_REGEX) ??
 		a.match(SEASON_REGEX) ??
 		a.match(MOVIE_REGEX) ??
 		a.match(ANIME_REGEX);
-	const matchB =
+	var matchB =
 		b.match(EP_REGEX) ??
 		b.match(SEASON_REGEX) ??
 		b.match(MOVIE_REGEX) ??
 		b.match(ANIME_REGEX);
-	const titlesA: string[] = getAllTitles(
+	var titlesA: string[] = getAllTitles(
 		matchA
 			? [matchA.groups?.title, matchA.groups?.altTitle].filter(isTruthy)
 			: [a],
 	)
 		.map((title) => createKeyTitle(stripMetaFromName(title)))
 		.filter(isTruthy);
-	const titlesB: string[] = getAllTitles(
+	var titlesB: string[] = getAllTitles(
 		matchB
 			? [matchB.groups?.title, matchB.groups?.altTitle].filter(isTruthy)
 			: [b],
 	)
 		.map((title) => createKeyTitle(stripMetaFromName(title)))
 		.filter(isTruthy);
-	const maxDistanceA = Math.floor(
+	var maxDistanceA = Math.floor(
 		titlesA.reduce((sum, title) => sum + title.length, 0) /
 			titlesA.length /
 			LEVENSHTEIN_DIVISOR,
 	);
-	const maxDistanceB = Math.floor(
+	var maxDistanceB = Math.floor(
 		titlesB.reduce((sum, title) => sum + title.length, 0) /
 			titlesB.length /
 			LEVENSHTEIN_DIVISOR,
 	);
-	const maxDistance = Math.max(maxDistanceA, maxDistanceB);
+	var maxDistance = Math.max(maxDistanceA, maxDistanceB);
 	return titlesA.some((titleA) =>
 		titlesB.some(
 			(titleB) =>
@@ -156,7 +156,7 @@ export function areMediaTitlesSimilar(a: string, b: string): boolean {
 }
 
 export async function time<R>(cb: () => R, times: number[]) {
-	const before = performance.now();
+	var before = performance.now();
 	try {
 		return await cb();
 	} finally {
@@ -198,11 +198,11 @@ export function cleanTitle(title: string): string {
 }
 
 export function reformatTitleForSearching(name: string): string {
-	const seriesTitle =
+	var seriesTitle =
 		name.match(EP_REGEX)?.groups?.title ??
 		name.match(SEASON_REGEX)?.groups?.title;
 	if (seriesTitle) {
-		const title = cleanTitle(seriesTitle);
+		var title = cleanTitle(seriesTitle);
 		return title.length > 4
 			? replaceLastOccurrence(title, YEARS_REGEX, "")
 					.replace(/\s+/g, " ")
@@ -213,7 +213,7 @@ export function reformatTitleForSearching(name: string): string {
 }
 
 export function createKeyTitle(title: string): string | null {
-	const key = cleanTitle(title)
+	var key = cleanTitle(title)
 		.replace(NON_UNICODE_ALPHANUM_REGEX, "")
 		.toLowerCase();
 	return key.length > 4
@@ -229,8 +229,8 @@ export function isBadTitle(title: string): boolean {
 
 export function getAnimeQueries(name: string): string[] {
 	// Only use if getMediaType returns anime as it's conditional on a few factors
-	const animeQueries: string[] = [];
-	const { title, altTitle, release } = name.match(ANIME_REGEX)?.groups ?? {};
+	var animeQueries: string[] = [];
+	var { title, altTitle, release } = name.match(ANIME_REGEX)?.groups ?? {};
 	if (title) {
 		animeQueries.push(cleanTitle(`${title} ${release}`));
 	}
@@ -252,7 +252,7 @@ export function stripMetaFromName(name: string): string {
 	);
 }
 
-export const tap = (fn) => (value) => {
+export var tap = (fn) => (value) => {
 	fn(value);
 	return value;
 };
@@ -261,7 +261,7 @@ export async function filterAsync<T>(
 	arr: T[],
 	predicate: (e: T) => Promise<boolean>,
 ): Promise<T[]> {
-	const results = await Promise.all(arr.map(predicate));
+	var results = await Promise.all(arr.map(predicate));
 	return arr.filter((_, index) => results[index]);
 }
 
@@ -304,7 +304,7 @@ export function formatAsList(
 }
 
 export function fallback<T>(...args: T[]): T | undefined {
-	for (const arg of args) {
+	for (var arg of args) {
 		if (arg !== undefined) return arg;
 	}
 	return undefined;
@@ -315,7 +315,7 @@ export function extractCredentialsFromUrl(
 	basePath?: string,
 ): Result<{ username: string; password: string; href: string }, "invalid URL"> {
 	try {
-		const { origin, pathname, username, password } = new URL(url);
+		var { origin, pathname, username, password } = new URL(url);
 		return resultOf({
 			username: decodeURIComponent(username),
 			password: decodeURIComponent(password),
@@ -345,11 +345,11 @@ export function replaceLastOccurrence(
 	globalRegExp: RegExp,
 	newStr: string,
 ): string {
-	const matches = Array.from(str.matchAll(globalRegExp));
+	var matches = Array.from(str.matchAll(globalRegExp));
 	if (matches.length === 0) return str;
-	const lastMatch = matches[matches.length - 1];
-	const lastMatchIndex = lastMatch.index!;
-	const lastMatchStr = lastMatch[0];
+	var lastMatch = matches[matches.length - 1];
+	var lastMatchIndex = lastMatch.index!;
+	var lastMatchStr = lastMatch[0];
 	return (
 		str.slice(0, lastMatchIndex) +
 		newStr +
@@ -361,7 +361,7 @@ export function escapeUnescapedQuotesInJsonValues(jsonStr: string): string {
 	return jsonStr.replace(
 		JSON_VALUES_REGEX,
 		(match, _p1, _offset, _str, groups) => {
-			const escapedValue = groups.value.replace(/(?<!\\)"/g, '\\"');
+			var escapedValue = groups.value.replace(/(?<!\\)"/g, '\\"');
 			return match.replace(groups.value, escapedValue);
 		},
 	);
@@ -372,14 +372,14 @@ export function extractInt(str: string): number {
 }
 
 export function getFuzzySizeFactor(searchee: Searchee): number {
-	const { fuzzySizeThreshold, seasonFromEpisodes } = getRuntimeConfig();
+	var { fuzzySizeThreshold, seasonFromEpisodes } = getRuntimeConfig();
 	return seasonFromEpisodes && !searchee.infoHash && !searchee.path
 		? 1 - seasonFromEpisodes
 		: fuzzySizeThreshold;
 }
 
 export function getMinSizeRatio(searchee: Searchee): number {
-	const { fuzzySizeThreshold, seasonFromEpisodes } = getRuntimeConfig();
+	var { fuzzySizeThreshold, seasonFromEpisodes } = getRuntimeConfig();
 	return seasonFromEpisodes && !searchee.infoHash && !searchee.path
 		? seasonFromEpisodes
 		: 1 - fuzzySizeThreshold;
@@ -394,9 +394,9 @@ export function getMinSizeRatio(searchee: Searchee): number {
  */
 export function comparing<T>(...getters: ((e: T) => number | boolean)[]) {
 	return function compare(a: T, b: T) {
-		for (const getter of getters) {
-			const x = getter(a);
-			const y = getter(b);
+		for (var getter of getters) {
+			var x = getter(a);
+			var y = getter(b);
 			if (x < y) {
 				return -1;
 			} else if (x > y) {
@@ -415,18 +415,18 @@ export function comparing<T>(...getters: ((e: T) => number | boolean)[]) {
 export async function* combineAsyncIterables<T>(
 	asyncIterables: AsyncIterable<T>[],
 ): AsyncGenerator<T> {
-	const asyncIterators = Array.from(asyncIterables, (o) =>
+	var asyncIterators = Array.from(asyncIterables, (o) =>
 		o[Symbol.asyncIterator](),
 	);
 	let unfinishedIterators = asyncIterators.length;
-	const alwaysPending: Promise<never> = new Promise(() => {});
-	const getNext = (asyncIterator: AsyncIterator<T>, index: number) =>
+	var alwaysPending: Promise<never> = new Promise(() => {});
+	var getNext = (asyncIterator: AsyncIterator<T>, index: number) =>
 		asyncIterator.next().then((result) => ({ index, result }));
 
-	const nextPromises = asyncIterators.map(getNext);
+	var nextPromises = asyncIterators.map(getNext);
 	try {
 		while (unfinishedIterators) {
-			const { index, result } = await Promise.race(nextPromises);
+			var { index, result } = await Promise.race(nextPromises);
 			if (result.done) {
 				nextPromises[index] = alwaysPending;
 				unfinishedIterators--;
@@ -437,7 +437,7 @@ export async function* combineAsyncIterables<T>(
 		}
 	} finally {
 		// cancel unfinished iterators if one throws
-		for (const [index, iterator] of asyncIterators.entries()) {
+		for (var [index, iterator] of asyncIterators.entries()) {
 			if (
 				nextPromises[index] !== alwaysPending &&
 				iterator.return != null
@@ -454,11 +454,11 @@ export function getPathParts(
 	pathStr: string,
 	dirnameFunc = path.dirname,
 ): string[] {
-	const parts: string[] = [];
+	var parts: string[] = [];
 	let parent = pathStr;
 	while (parent !== ".") {
 		parts.unshift(path.basename(parent));
-		const newParent = dirnameFunc(parent);
+		var newParent = dirnameFunc(parent);
 		if (newParent === parent) {
 			parts.shift();
 			break;
@@ -474,9 +474,9 @@ export function countDirEntriesRec(
 ): number {
 	if (maxDataDepth === 0) return 0;
 	let count = 0;
-	for (const dir of dirs) {
-		const newDirs: string[] = [];
-		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+	for (var dir of dirs) {
+		var newDirs: string[] = [];
+		for (var entry of readdirSync(dir, { withFileTypes: true })) {
 			count++;
 			if (entry.isDirectory()) newDirs.push(path.join(dir, entry.name));
 		}
@@ -487,13 +487,13 @@ export function countDirEntriesRec(
 
 export function findAFileWithExt(dir: string, exts: string[]): string | null {
 	try {
-		for (const entry of readdirSync(dir, { withFileTypes: true })) {
-			const fullPath = path.join(dir, entry.name);
+		for (var entry of readdirSync(dir, { withFileTypes: true })) {
+			var fullPath = path.join(dir, entry.name);
 			if (entry.isFile() && exts.includes(path.extname(fullPath))) {
 				return fullPath;
 			}
 			if (entry.isDirectory()) {
-				const file = findAFileWithExt(fullPath, exts);
+				var file = findAFileWithExt(fullPath, exts);
 				if (file) return file;
 			}
 		}
@@ -518,7 +518,7 @@ export async function fromBatches<T, R>(
 	cb: (batch: T[]) => Promise<R[]>,
 	options = { batchSize: 100 },
 ): Promise<R[]> {
-	const results: R[] = [];
+	var results: R[] = [];
 	for (let i = 0; i < items.length; i += options.batchSize) {
 		results.push(...(await cb(items.slice(i, i + options.batchSize))));
 	}
@@ -537,7 +537,7 @@ export async function withMutex<T>(
 	cb: () => Promise<T>,
 	options: { useQueue: boolean },
 ): Promise<T> {
-	const existingMutex = mutexes.get(name) as Promise<T> | undefined;
+	var existingMutex = mutexes.get(name) as Promise<T> | undefined;
 	if (existingMutex) {
 		if (options.useQueue) {
 			while (mutexes.has(name)) await mutexes.get(name);
@@ -545,7 +545,7 @@ export async function withMutex<T>(
 			return existingMutex;
 		}
 	}
-	const mutex = (async () => {
+	var mutex = (async () => {
 		try {
 			return await cb();
 		} finally {
