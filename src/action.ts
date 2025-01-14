@@ -42,8 +42,8 @@ import {
 	withMutex,
 } from "./utils.js";
 
-const srcTestName = "test.cross-seed";
-const linkTestName = "cross-seed.test";
+var srcTestName = "test.cross-seed";
+var linkTestName = "cross-seed.test";
 
 type ActionReturn =
 	| {
@@ -73,8 +73,8 @@ function linkAllFilesInMetafile(
 	destinationDir: string,
 	options: { savePath?: string; ignoreMissing: boolean },
 ): Result<LinkResult, Error> {
-	const availableFiles = searchee.files.slice();
-	const paths =
+	var availableFiles = searchee.files.slice();
+	var paths =
 		decision === Decision.MATCH && options.savePath
 			? newMeta.files.map((file) => [
 					join(options.savePath!, file.path),
@@ -92,11 +92,11 @@ function linkAllFilesInMetafile(
 						);
 					}
 					if (!matchedSearcheeFiles.length) return acc;
-					const index = availableFiles.indexOf(
+					var index = availableFiles.indexOf(
 						matchedSearcheeFiles[0],
 					);
 					availableFiles.splice(index, 1);
-					const srcFilePath = options.savePath
+					var srcFilePath = options.savePath
 						? join(options.savePath, matchedSearcheeFiles[0].path)
 						: matchedSearcheeFiles[0].path; // Absolute path
 					acc.push([srcFilePath, join(destinationDir, newFile.path)]);
@@ -105,7 +105,7 @@ function linkAllFilesInMetafile(
 	let alreadyExisted = false;
 	let linkedNewFiles = false;
 	try {
-		const validPaths = paths.filter(([srcFilePath, destFilePath]) => {
+		var validPaths = paths.filter(([srcFilePath, destFilePath]) => {
 			if (fs.existsSync(destFilePath)) {
 				alreadyExisted = true;
 				return false;
@@ -114,8 +114,8 @@ function linkAllFilesInMetafile(
 			if (options.ignoreMissing) return false;
 			throw new Error(`Linking failed, ${srcFilePath} not found.`);
 		});
-		for (const [srcFilePath, destFilePath] of validPaths) {
-			const destFileParentPath = dirname(destFilePath);
+		for (var [srcFilePath, destFilePath] of validPaths) {
+			var destFileParentPath = dirname(destFilePath);
 			if (!fs.existsSync(destFileParentPath)) {
 				fs.mkdirSync(destFileParentPath, { recursive: true });
 			}
@@ -130,9 +130,9 @@ function linkAllFilesInMetafile(
 }
 
 function unlinkMetafile(meta: Metafile, destinationDir: string) {
-	const destinationDirIno = fs.statSync(destinationDir).ino;
-	const roots = meta.files.map((file) => join(destinationDir, getRoot(file)));
-	for (const root of roots) {
+	var destinationDirIno = fs.statSync(destinationDir).ino;
+	var roots = meta.files.map((file) => join(destinationDir, getRoot(file)));
+	for (var root of roots) {
 		if (!fs.existsSync(root)) continue;
 		if (!root.startsWith(destinationDir)) continue; // assert: root is within destinationDir
 		if (resolve(root) === resolve(destinationDir)) continue; // assert: root is not destinationDir
@@ -159,11 +159,11 @@ async function getSavePath(
 			});
 			return resultOfErr("INVALID_DATA");
 		}
-		const result = await createSearcheeFromPath(searchee.path);
+		var result = await createSearcheeFromPath(searchee.path);
 		if (result.isErr()) {
 			return resultOfErr("TORRENT_NOT_FOUND");
 		}
-		const refreshedSearchee = result.unwrap();
+		var refreshedSearchee = result.unwrap();
 		if (
 			options.onlyCompleted &&
 			(searchee.mtimeMs !== refreshedSearchee.mtimeMs ||
@@ -173,13 +173,13 @@ async function getSavePath(
 		}
 		return resultOf(dirname(searchee.path));
 	} else if (!searchee.infoHash) {
-		for (const file of searchee.files) {
+		for (var file of searchee.files) {
 			if (!fs.existsSync(file.path)) {
 				logger.error(`Linking failed, ${file.path} not found.`);
 				return resultOfErr("INVALID_DATA");
 			}
 			if (options.onlyCompleted) {
-				const f = fs.statSync(file.path);
+				var f = fs.statSync(file.path);
 				if (searchee.mtimeMs! < f.mtimeMs || file.length !== f.size) {
 					return resultOfErr("TORRENT_NOT_COMPLETE");
 				}
@@ -187,21 +187,21 @@ async function getSavePath(
 		}
 		return resultOf(undefined);
 	}
-	const clients = getClients();
-	const client =
+	var clients = getClients();
+	var client =
 		clients.length === 1
 			? clients[0]
 			: clients.find((c) => c.clientHost === searchee.clientHost)!;
 	let savePath: string;
 	if (searchee.savePath) {
-		const refreshedSearchee = (
+		var refreshedSearchee = (
 			await client.getClientSearchees({
 				newSearcheesOnly: true,
 				refresh: [searchee.infoHash],
 			})
 		).newSearchees.find((s) => s.infoHash === searchee.infoHash);
 		if (!refreshedSearchee) return resultOfErr("TORRENT_NOT_FOUND");
-		for (const [key, value] of Object.entries(refreshedSearchee)) {
+		for (var [key, value] of Object.entries(refreshedSearchee)) {
 			searchee[key] = value;
 		}
 		if (
@@ -211,7 +211,7 @@ async function getSavePath(
 		}
 		savePath = searchee.savePath;
 	} else {
-		const downloadDirResult = await client.getDownloadDir(
+		var downloadDirResult = await client.getDownloadDir(
 			searchee as SearcheeWithInfoHash,
 			{ onlyCompleted: options.onlyCompleted },
 		);
@@ -224,8 +224,8 @@ async function getSavePath(
 		}
 		savePath = downloadDirResult.unwrap();
 	}
-	const rootFolder = getRootFolder(searchee.files[0]);
-	const sourceRootOrSavePath =
+	var rootFolder = getRootFolder(searchee.files[0]);
+	var sourceRootOrSavePath =
 		searchee.files.length === 1
 			? join(savePath, searchee.files[0].path)
 			: rootFolder
@@ -248,7 +248,7 @@ async function getClientAndDestinationDir(
 	newMeta: Metafile,
 	tracker: string,
 ): Promise<{ client: TorrentClient; destinationDir: string } | null> {
-	const { flatLinking, linkType } = getRuntimeConfig();
+	var { flatLinking, linkType } = getRuntimeConfig();
 	if (!client) {
 		let srcPath: string;
 		let srcDev: number;
@@ -267,8 +267,8 @@ async function getClientAndDestinationDir(
 			return null;
 		}
 		let error: Error | undefined;
-		for (const testClient of getClients().filter((c) => !c.readonly)) {
-			const torrentSavePaths = new Set(
+		for (var testClient of getClients().filter((c) => !c.readonly)) {
+			var torrentSavePaths = new Set(
 				(
 					await testClient.getAllDownloadDirs({
 						metas: [],
@@ -276,13 +276,13 @@ async function getClientAndDestinationDir(
 					})
 				).values(),
 			);
-			for (const torrentSavePath of torrentSavePaths) {
+			for (var torrentSavePath of torrentSavePaths) {
 				try {
 					if (srcDev && fs.statSync(torrentSavePath).dev === srcDev) {
 						client = testClient;
 						break;
 					}
-					const testPath = join(torrentSavePath, linkTestName);
+					var testPath = join(torrentSavePath, linkTestName);
 					linkFile(
 						srcPath,
 						testPath,
@@ -306,7 +306,7 @@ async function getClientAndDestinationDir(
 	}
 
 	let destinationDir: string;
-	const clientSavePathRes = await client.getDownloadDir(newMeta, {
+	var clientSavePathRes = await client.getDownloadDir(newMeta, {
 		onlyCompleted: false,
 	});
 	if (clientSavePathRes.isOk()) {
@@ -315,7 +315,7 @@ async function getClientAndDestinationDir(
 		if (clientSavePathRes.unwrapErr() === "INVALID_DATA") {
 			return null;
 		}
-		const linkDir = savePath
+		var linkDir = savePath
 			? getLinkDir(savePath)
 			: getLinkDirVirtual(searchee as SearcheeVirtual);
 		if (!linkDir) return null;
@@ -331,10 +331,10 @@ function logActionResult(
 	tracker: string,
 	decision: Decision,
 ) {
-	const metaLog = getLogString(newMeta, chalk.green.bold);
-	const searcheeLog = getLogString(searchee, chalk.magenta.bold);
-	const source = `${getSearcheeSource(searchee)} (${searcheeLog})`;
-	const foundBy = `Found ${metaLog} on ${chalk.bold(tracker)} by`;
+	var metaLog = getLogString(newMeta, chalk.green.bold);
+	var searcheeLog = getLogString(searchee, chalk.magenta.bold);
+	var source = `${getSearcheeSource(searchee)} (${searcheeLog})`;
+	var foundBy = `Found ${metaLog} on ${chalk.bold(tracker)} by`;
 
 	let infoOrVerbose = logger.info;
 	let warnOrVerbose = logger.warn;
@@ -409,7 +409,7 @@ export async function performActionWithoutMutex(
 	injectClient?: TorrentClient,
 	options = { onlyCompleted: true },
 ): Promise<ActionReturn> {
-	const { action, linkDirs } = getRuntimeConfig();
+	var { action, linkDirs } = getRuntimeConfig();
 
 	if (action === Action.SAVE) {
 		logActionResult(SaveResult.SAVED, newMeta, searchee, tracker, decision);
@@ -417,27 +417,27 @@ export async function performActionWithoutMutex(
 		return { actionResult: SaveResult.SAVED };
 	}
 
-	const savePathRes = await getSavePath(searchee, options);
-	const savePath = savePathRes.orElse(undefined);
+	var savePathRes = await getSavePath(searchee, options);
+	var savePath = savePathRes.orElse(undefined);
 	let destinationDir: string | undefined;
 	let unlinkOk = false;
 	let linkedNewFiles = false;
-	const warnOrVerbose =
+	var warnOrVerbose =
 		searchee.label !== Label.INJECT ? logger.warn : logger.verbose;
 
-	const clients = getClients();
+	var clients = getClients();
 	let client =
 		clients.length === 1
 			? clients[0]
 			: clients.find(
 					(c) => c.clientHost === searchee.clientHost && !c.readonly,
 				);
-	const readonlySource = !client && !!searchee.clientHost;
+	var readonlySource = !client && !!searchee.clientHost;
 	if (linkDirs.length) {
 		if (savePathRes.isErr()) {
-			const result = savePathRes.unwrapErr();
+			var result = savePathRes.unwrapErr();
 			if (result === "TORRENT_NOT_COMPLETE") {
-				const actionResult = InjectionResult.TORRENT_NOT_COMPLETE;
+				var actionResult = InjectionResult.TORRENT_NOT_COMPLETE;
 				logActionResult(
 					actionResult,
 					newMeta,
@@ -448,7 +448,7 @@ export async function performActionWithoutMutex(
 				await saveTorrentFile(tracker, getMediaType(newMeta), newMeta);
 				return { client, actionResult, linkedNewFiles };
 			}
-			const actionResult = InjectionResult.FAILURE;
+			var actionResult = InjectionResult.FAILURE;
 			logger.error({
 				label: searchee.label,
 				message: `Failed to link files for ${getLogString(newMeta)} from ${getLogString(searchee)}: ${result}`,
@@ -457,7 +457,7 @@ export async function performActionWithoutMutex(
 			await saveTorrentFile(tracker, getMediaType(newMeta), newMeta);
 			return { actionResult, linkedNewFiles };
 		}
-		const res = await getClientAndDestinationDir(
+		var res = await getClientAndDestinationDir(
 			client,
 			searchee,
 			savePath,
@@ -477,12 +477,12 @@ export async function performActionWithoutMutex(
 			label: searchee.label,
 			message: `Failed to find a torrent client for ${getLogString(searchee)}`,
 		});
-		const actionResult = InjectionResult.FAILURE;
+		var actionResult = InjectionResult.FAILURE;
 		logActionResult(actionResult, newMeta, searchee, tracker, decision);
 		await saveTorrentFile(tracker, getMediaType(newMeta), newMeta);
 		return { actionResult, linkedNewFiles };
 	}
-	for (const otherClient of clients) {
+	for (var otherClient of clients) {
 		if (otherClient.clientHost === client.clientHost) continue;
 		if ((await otherClient.isTorrentComplete(newMeta.infoHash)).isErr()) {
 			continue;
@@ -491,7 +491,7 @@ export async function performActionWithoutMutex(
 			label: searchee.label,
 			message: `Skipping ${getLogString(newMeta)} injection into ${client.clientHost} - already exists in ${otherClient.clientHost}`,
 		});
-		const actionResult = InjectionResult.FAILURE;
+		var actionResult = InjectionResult.FAILURE;
 		logActionResult(actionResult, newMeta, searchee, tracker, decision);
 		return { actionResult, linkedNewFiles };
 	}
@@ -500,13 +500,13 @@ export async function performActionWithoutMutex(
 			label: searchee.label,
 			message: `Skipping ${getLogString(newMeta)} injection into ${client.clientHost} - existing match is using ${injectClient.clientHost}`,
 		});
-		const actionResult = InjectionResult.FAILURE;
+		var actionResult = InjectionResult.FAILURE;
 		logActionResult(actionResult, newMeta, searchee, tracker, decision);
 		return { actionResult, linkedNewFiles };
 	}
 
 	if (linkDirs.length) {
-		const res = linkAllFilesInMetafile(
+		var res = linkAllFilesInMetafile(
 			searchee,
 			newMeta,
 			decision,
@@ -518,12 +518,12 @@ export async function performActionWithoutMutex(
 				label: searchee.label,
 				message: `Failed to link files for ${getLogString(newMeta)} from ${getLogString(searchee)}: ${res.unwrapErr().message}`,
 			});
-			const actionResult = InjectionResult.FAILURE;
+			var actionResult = InjectionResult.FAILURE;
 			logActionResult(actionResult, newMeta, searchee, tracker, decision);
 			await saveTorrentFile(tracker, getMediaType(newMeta), newMeta);
 			return { actionResult, linkedNewFiles };
 		}
-		const linkResult = res.unwrap();
+		var linkResult = res.unwrap();
 		unlinkOk = !linkResult.alreadyExisted;
 		linkedNewFiles = linkResult.linkedNewFiles;
 	} else if (searchee.path) {
@@ -534,7 +534,7 @@ export async function performActionWithoutMutex(
 				label: searchee.label,
 				message: `Failed to find a save path for ${getLogString(searchee)}`,
 			});
-			const actionResult = InjectionResult.FAILURE;
+			var actionResult = InjectionResult.FAILURE;
 			logActionResult(actionResult, newMeta, searchee, tracker, decision);
 			await saveTorrentFile(tracker, getMediaType(newMeta), newMeta);
 			return { actionResult, linkedNewFiles };
@@ -542,7 +542,7 @@ export async function performActionWithoutMutex(
 		destinationDir = savePath;
 	}
 
-	const actionResult = await client.inject(
+	var actionResult = await client.inject(
 		newMeta,
 		readonlySource ? { ...searchee, infoHash: undefined } : searchee, // treat as data-based
 		decision,
@@ -586,9 +586,9 @@ export async function performActions(
 	searchee: SearcheeWithLabel,
 	matches: AssessmentWithTracker[],
 ) {
-	const results: ActionResult[] = [];
-	for (const { tracker, assessment } of matches) {
-		const { actionResult } = await performAction(
+	var results: ActionResult[] = [];
+	for (var { tracker, assessment } of matches) {
+		var { actionResult } = await performAction(
 			assessment.metafile!,
 			assessment.decision as DecisionAnyMatch,
 			searchee,
@@ -600,11 +600,11 @@ export async function performActions(
 }
 
 export function getLinkDir(pathStr: string): string | null {
-	const { linkDirs, linkType } = getRuntimeConfig();
-	const pathStat = fs.statSync(pathStr);
-	const pathDev = pathStat.dev; // Windows always returns 0
+	var { linkDirs, linkType } = getRuntimeConfig();
+	var pathStat = fs.statSync(pathStr);
+	var pathDev = pathStat.dev; // Windows always returns 0
 	if (pathDev) {
-		for (const linkDir of linkDirs) {
+		for (var linkDir of linkDirs) {
 			if (fs.statSync(linkDir).dev === pathDev) return linkDir;
 		}
 	}
@@ -626,9 +626,9 @@ export function getLinkDir(pathStr: string): string | null {
 		}
 	}
 	if (srcFile) {
-		for (const linkDir of linkDirs) {
+		for (var linkDir of linkDirs) {
 			try {
-				const testPath = join(linkDir, linkTestName);
+				var testPath = join(linkDir, linkTestName);
 				linkFile(
 					srcFile,
 					testPath,
@@ -660,7 +660,7 @@ export function getLinkDir(pathStr: string): string | null {
 }
 
 export function getLinkDirVirtual(searchee: SearcheeVirtual): string | null {
-	const linkDir = getLinkDir(searchee.files[0].path);
+	var linkDir = getLinkDir(searchee.files[0].path);
 	if (!linkDir) return null;
 	for (let i = 1; i < searchee.files.length; i++) {
 		if (getLinkDir(searchee.files[i].path) !== linkDir) {
@@ -680,7 +680,7 @@ function linkFile(
 ): boolean {
 	if (!linkType) linkType = getRuntimeConfig().linkType;
 	try {
-		const ogFileResolvedPath = unwrapSymlinks(oldPath);
+		var ogFileResolvedPath = unwrapSymlinks(oldPath);
 
 		switch (linkType) {
 			case LinkType.HARDLINK:
@@ -728,7 +728,7 @@ function unwrapSymlinks(path: string): string {
  * @param srcDir The directory to link from
  */
 export function testLinking(srcDir: string): void {
-	const { linkDirs, linkType } = getRuntimeConfig();
+	var { linkDirs, linkType } = getRuntimeConfig();
 	let tempFile: string | undefined;
 	try {
 		let srcFile = findAFileWithExt(srcDir, ALL_EXTENSIONS);
@@ -745,9 +745,9 @@ export function testLinking(srcDir: string): void {
 				return;
 			}
 		}
-		const linkDir = getLinkDir(srcDir);
+		var linkDir = getLinkDir(srcDir);
 		if (!linkDir) throw new Error(`No valid linkDir found for ${srcDir}`);
-		const testPath = join(linkDir, linkTestName);
+		var testPath = join(linkDir, linkTestName);
 		linkFile(srcFile, testPath);
 		fs.rmSync(testPath);
 	} catch (e) {
