@@ -54,11 +54,11 @@ interface ParsedSeries {
 export type ParsedMedia = ParsedMovie | ParsedSeries;
 
 export async function validateUArrLs() {
-	var { sonarr, radarr } = getRuntimeConfig();
+	const { sonarr, radarr } = getRuntimeConfig();
 
 	if (sonarr) {
-		var urls: URL[] = sonarr.map((str) => new URL(str));
-		for (var url of urls) {
+		const urls: URL[] = sonarr.map((str) => new URL(str));
+		for (const url of urls) {
 			if (!url.searchParams.has("apikey")) {
 				throw new CrossSeedError(
 					`Sonarr url ${url} does not specify an apikey`,
@@ -68,8 +68,8 @@ export async function validateUArrLs() {
 		}
 	}
 	if (radarr) {
-		var urls: URL[] = radarr.map((str) => new URL(str));
-		for (var url of urls) {
+		const urls: URL[] = radarr.map((str) => new URL(str));
+		for (const url of urls) {
 			if (!url.searchParams.has("apikey")) {
 				throw new CrossSeedError(
 					`Radarr url ${url} does not specify an apikey`,
@@ -81,19 +81,19 @@ export async function validateUArrLs() {
 }
 
 async function checkArrIsActive(uArrL: string, arrInstance: string) {
-	var arrPingCheck = await makeArrApiCall<{
+	const arrPingCheck = await makeArrApiCall<{
 		current: string;
 	}>(uArrL, "/api");
 
 	if (arrPingCheck.isOk()) {
-		var arrPingResponse = arrPingCheck.unwrap();
+		const arrPingResponse = arrPingCheck.unwrap();
 		if (!arrPingResponse?.current) {
 			throw new CrossSeedError(
 				`Failed to establish a connection to ${arrInstance} URL: ${uArrL}`,
 			);
 		}
 	} else {
-		var error = arrPingCheck.unwrapErr();
+		const error = arrPingCheck.unwrapErr();
 		throw new CrossSeedError(
 			`Could not contact ${arrInstance} at ${uArrL}`,
 			{
@@ -107,7 +107,7 @@ async function checkArrIsActive(uArrL: string, arrInstance: string) {
 }
 
 function getBodySampleMessage(text: string): string {
-	var first1000Chars = text.substring(0, 1000);
+	const first1000Chars = text.substring(0, 1000);
 	if (first1000Chars) {
 		return `first 1000 characters: ${first1000Chars}`;
 	} else {
@@ -120,11 +120,11 @@ async function makeArrApiCall<ResponseType>(
 	resourcePath: string,
 	params = new URLSearchParams(),
 ): Promise<Result<ResponseType, Error>> {
-	var apikey = getApikey(uArrL)!;
-	var url = new URL(sanitizeUrl(uArrL));
+	const apikey = getApikey(uArrL)!;
+	const url = new URL(sanitizeUrl(uArrL));
 
 	url.pathname = posixJoin(url.pathname, resourcePath);
-	for (var [name, value] of params) {
+	for (const [name, value] of params) {
 		url.searchParams.set(name, value);
 	}
 
@@ -146,8 +146,8 @@ async function makeArrApiCall<ResponseType>(
 		return resultOfErr(networkError);
 	}
 	if (!response.ok) {
-		var responseText = await response.text();
-		var bodySampleMessage = getBodySampleMessage(responseText);
+		const responseText = await response.text();
+		const bodySampleMessage = getBodySampleMessage(responseText);
 		return resultOfErr(
 			new Error(
 				`${response.status} ${response.statusText} ${bodySampleMessage}`,
@@ -155,10 +155,10 @@ async function makeArrApiCall<ResponseType>(
 		);
 	}
 	try {
-		var responseBody = await response.json();
+		const responseBody = await response.json();
 		return resultOf(responseBody as ResponseType);
 	} catch (e) {
-		var responseText = await clonedResponse.text();
+		const responseText = await clonedResponse.text();
 		return resultOfErr(
 			new Error(
 				`Arr response was non-JSON. ${getBodySampleMessage(responseText)}`,
@@ -186,8 +186,8 @@ export function formatFoundIds(foundIds: ExternalIds): string {
 			),
 		)
 		.map(([idName, idValue]) => {
-			var name = idName.toUpperCase().replace("ID", "");
-			var val = idValue ?? "N/A";
+			const name = idName.toUpperCase().replace("ID", "");
+			const val = idValue ?? "N/A";
 			return `${chalk.yellow(name)}=${chalk.white(val)}`;
 		})
 		.join(" ");
@@ -215,7 +215,7 @@ function logArrQueryResult(
 		});
 		logger.debug(error);
 	} else {
-		var foundIdsStr = formatFoundIds(externalIds);
+		const foundIdsStr = formatFoundIds(externalIds);
 		logger.verbose({
 			label: label,
 			message: `Found media for ${chalk.green.bold(searchTerm)} -> ${foundIdsStr}`,
@@ -224,7 +224,7 @@ function logArrQueryResult(
 }
 
 function getRelevantArrInstances(mediaType: MediaType): string[] {
-	var { sonarr, radarr } = getRuntimeConfig();
+	const { sonarr, radarr } = getRuntimeConfig();
 	switch (mediaType) {
 		case MediaType.SEASON:
 		case MediaType.EPISODE:
@@ -243,37 +243,37 @@ export async function scanAllArrsForMedia(
 	searcheeTitle: string,
 	mediaType: MediaType,
 ): Promise<Result<ParsedMedia, boolean>> {
-	var uArrLs = getRelevantArrInstances(mediaType);
+	const uArrLs = getRelevantArrInstances(mediaType);
 	if (uArrLs.length === 0) {
 		return resultOfErr(false);
 	}
-	var title =
+	const title =
 		mediaType !== MediaType.VIDEO
 			? searcheeTitle.match(SCENE_TITLE_REGEX)!.groups!.title
 			: cleanseSeparators(stripMetaFromName(searcheeTitle));
 	let error = new Error(
 		`No ids found for ${title} | MediaType: ${mediaType.toUpperCase()}`,
 	);
-	for (var uArrL of uArrLs) {
-		var name =
+	for (const uArrL of uArrLs) {
+		const name =
 			mediaType === MediaType.VIDEO &&
 			getRuntimeConfig().sonarr?.includes(uArrL)
 				? `${title} S00E00` // Sonarr needs season or episode
 				: title;
-		var result = await getMediaFromArr(uArrL, name);
+		const result = await getMediaFromArr(uArrL, name);
 		if (result.isErr()) {
 			error = result.unwrapErr();
 			continue;
 		}
-		var response = result.unwrap();
-		var ids = response.movie ?? response.series ?? {};
-		for (var [key, value] of Object.entries(ids)) {
+		const response = result.unwrap();
+		const ids = response.movie ?? response.series ?? {};
+		for (const [key, value] of Object.entries(ids)) {
 			if (value === 0 || value === "0") {
 				ids[key] = undefined;
 			}
 		}
 		if (Object.values(ids).some(isTruthy)) {
-			var label = response.movie ? Label.RADARR : Label.SONARR;
+			const label = response.movie ? Label.RADARR : Label.SONARR;
 			logArrQueryResult(ids, name, label);
 			return resultOf(response);
 		}
@@ -286,10 +286,10 @@ export async function getRelevantArrIds(
 	caps: Caps,
 	parsedMedia: ParsedMedia,
 ): Promise<IdSearchParams> {
-	var idSearchCaps = parsedMedia.movie
+	const idSearchCaps = parsedMedia.movie
 		? caps.movieIdSearch
 		: caps.tvIdSearch;
-	var ids = parsedMedia.movie ?? parsedMedia.series;
+	const ids = parsedMedia.movie ?? parsedMedia.series;
 	return {
 		tvdbid: idSearchCaps.tvdbId ? ids.tvdbId : undefined,
 		tmdbid: idSearchCaps.tmdbId ? ids.tmdbId : undefined,
