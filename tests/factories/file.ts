@@ -1,6 +1,6 @@
 import { File } from "../../src/searchee";
 
-export let fileFactory = (overrides: Partial<File> = {}): File => {
+export const fileFactory = (overrides: Partial<File> = {}): File => {
 	return {
 		name: "media.mp4",
 		length: 0,
