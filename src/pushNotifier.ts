@@ -41,7 +41,7 @@ export class PushNotifier {
 		return Promise.all(
 			this.urls.map(async (url) => {
 				try {
-					const response = await fetch(url, {
+					var response = await fetch(url, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -51,7 +51,7 @@ export class PushNotifier {
 					});
 
 					if (!response.ok) {
-						const responseText = await response.clone().text();
+						var responseText = await response.clone().text();
 						logger.error(
 							`${url} rejected push notification: ${response.status} ${response.statusText}`,
 						);
@@ -76,43 +76,43 @@ export function sendResultsNotification(
 	searchee: SearcheeWithLabel,
 	results: [ResultAssessment, TrackerName, ActionResult][],
 ) {
-	const { autoResumeMaxDownload } = getRuntimeConfig();
-	const source = searchee.label;
-	const searcheeCategory = searchee.category ?? null;
-	const searcheeTags = searchee.tags ?? null;
-	const searcheeTrackers = searchee.trackers ?? null;
-	const searcheeLength = searchee.length;
-	const searcheeInfoHash = searchee.infoHash ?? null;
-	const searcheeClientHost = searchee.clientHost ?? null;
-	const searcheePath = searchee.path ?? null;
-	const searcheeSource = getSearcheeSource(searchee);
+	var { autoResumeMaxDownload } = getRuntimeConfig();
+	var source = searchee.label;
+	var searcheeCategory = searchee.category ?? null;
+	var searcheeTags = searchee.tags ?? null;
+	var searcheeTrackers = searchee.trackers ?? null;
+	var searcheeLength = searchee.length;
+	var searcheeInfoHash = searchee.infoHash ?? null;
+	var searcheeClientHost = searchee.clientHost ?? null;
+	var searcheePath = searchee.path ?? null;
+	var searcheeSource = getSearcheeSource(searchee);
 
-	const notableSuccesses = results.filter(
+	var notableSuccesses = results.filter(
 		([, , actionResult]) =>
 			actionResult === InjectionResult.SUCCESS ||
 			actionResult === SaveResult.SAVED,
 	);
 	if (notableSuccesses.length) {
-		const name = notableSuccesses[0][0].metafile!.name;
-		const numTrackers = notableSuccesses.length;
-		const infoHashes = notableSuccesses.map(
+		var name = notableSuccesses[0][0].metafile!.name;
+		var numTrackers = notableSuccesses.length;
+		var infoHashes = notableSuccesses.map(
 			([{ metafile }]) => metafile!.infoHash,
 		);
-		const trackers = notableSuccesses.map(([, tracker]) => tracker);
-		const trackersListStr = formatAsList(trackers, { sort: true });
-		const paused = notableSuccesses.some(
+		var trackers = notableSuccesses.map(([, tracker]) => tracker);
+		var trackersListStr = formatAsList(trackers, { sort: true });
+		var paused = notableSuccesses.some(
 			([{ metafile }]) =>
 				(1 - getPartialSizeRatio(metafile!, searchee)) *
 					metafile!.length >
 				autoResumeMaxDownload,
 		);
-		const injected = notableSuccesses.some(
+		var injected = notableSuccesses.some(
 			([, , actionResult]) => actionResult === InjectionResult.SUCCESS,
 		);
-		const performedAction = injected
+		var performedAction = injected
 			? `Injected${paused ? " (paused)" : ""}`
 			: "Saved";
-		const decisions = notableSuccesses.map(([{ decision }]) => decision);
+		var decisions = notableSuccesses.map(([{ decision }]) => decision);
 
 		pushNotifier.notify({
 			body: `${source}: ${performedAction} ${name} on ${numTrackers} tracker${numTrackers !== 1 ? "s" : ""} by ${formatAsList(decisions, { sort: true })} from ${searcheeSource}: ${trackersListStr}`,
@@ -139,16 +139,16 @@ export function sendResultsNotification(
 		});
 	}
 
-	const failures = results.filter(
+	var failures = results.filter(
 		([, , actionResult]) => actionResult === InjectionResult.FAILURE,
 	);
 	if (failures.length) {
-		const name = failures[0][0].metafile!.name;
-		const numTrackers = failures.length;
-		const infoHashes = failures.map(([{ metafile }]) => metafile!.infoHash);
-		const trackers = failures.map(([, tracker]) => tracker);
-		const trackersListStr = formatAsList(trackers, { sort: true });
-		const decisions = failures.map(([{ decision }]) => decision);
+		var name = failures[0][0].metafile!.name;
+		var numTrackers = failures.length;
+		var infoHashes = failures.map(([{ metafile }]) => metafile!.infoHash);
+		var trackers = failures.map(([, tracker]) => tracker);
+		var trackersListStr = formatAsList(trackers, { sort: true });
+		var decisions = failures.map(([{ decision }]) => decision);
 
 		pushNotifier.notify({
 			body: `${source}: Failed to inject ${name} on ${numTrackers} tracker${numTrackers !== 1 ? "s" : ""} by ${formatAsList(decisions, { sort: true })} from ${searcheeSource}: ${trackersListStr}`,
@@ -177,7 +177,7 @@ export function sendResultsNotification(
 }
 
 export function initializePushNotifier(): void {
-	const { notificationWebhookUrls } = getRuntimeConfig();
+	var { notificationWebhookUrls } = getRuntimeConfig();
 	pushNotifier = new PushNotifier(notificationWebhookUrls);
 }
 
