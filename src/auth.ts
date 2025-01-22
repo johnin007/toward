@@ -7,21 +7,21 @@ function generateApiKey(): string {
 }
 
 export async function resetApiKey(): Promise<string> {
-	let apikey = generateApiKey();
+	const apikey = generateApiKey();
 	await db("settings").update({ apikey });
 	return apikey;
 }
 
 export async function getApiKey(): Promise<string> {
-	let { apiKey: runtimeConfigApiKey } = getRuntimeConfig();
+	const { apiKey: runtimeConfigApiKey } = getRuntimeConfig();
 	if (runtimeConfigApiKey) return runtimeConfigApiKey;
 
-	let { apikey } = await db("settings").select("apikey").first();
+	const { apikey } = await db("settings").select("apikey").first();
 	if (!apikey) return resetApiKey();
 	return apikey;
 }
 
 export async function checkApiKey(keyToCheck: string): Promise<boolean> {
-	let apikey = await getApiKey();
+	const apikey = await getApiKey();
 	return apikey === keyToCheck;
 }
