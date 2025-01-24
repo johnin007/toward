@@ -74,10 +74,10 @@ async function verifyPath(
  * @returns true (if paths are valid)
  */
 async function checkConfigPaths(): Promise<void> {
-	const { dataDirs, injectDir, linkDirs, outputDir, torrentDir } =
+	var { dataDirs, injectDir, linkDirs, outputDir, torrentDir } =
 		getRuntimeConfig();
-	const READ_ONLY = constants.R_OK;
-	const READ_AND_WRITE = constants.R_OK | constants.W_OK;
+	var READ_ONLY = constants.R_OK;
+	var READ_AND_WRITE = constants.R_OK | constants.W_OK;
 	let pathFailure: number = 0;
 
 	if (
@@ -95,7 +95,7 @@ async function checkConfigPaths(): Promise<void> {
 		pathFailure++;
 	}
 
-	for (const linkDir of linkDirs) {
+	for (var linkDir of linkDirs) {
 		if (!existsSync(linkDir)) {
 			logger.info(`Creating linkDir: ${linkDir}`);
 			mkdirSync(linkDir, { recursive: true });
@@ -104,7 +104,7 @@ async function checkConfigPaths(): Promise<void> {
 			pathFailure++;
 		}
 	}
-	for (const dataDir of dataDirs) {
+	for (var dataDir of dataDirs) {
 		if (!(await verifyPath(dataDir, "dataDirs", READ_ONLY))) {
 			pathFailure++;
 		}
@@ -119,7 +119,7 @@ async function checkConfigPaths(): Promise<void> {
 		}
 	}
 	if (linkDirs.length) {
-		for (const dataDir of dataDirs) {
+		for (var dataDir of dataDirs) {
 			try {
 				testLinking(dataDir);
 			} catch (e) {
@@ -143,13 +143,13 @@ async function retry<T>(
 	numRetries: number,
 	delayMs: number,
 ): Promise<T> {
-	const retries = Math.max(numRetries, 0);
+	var retries = Math.max(numRetries, 0);
 	let lastError = new Error("Retry failed");
 	for (let i = 0; i <= retries; i++) {
 		try {
 			return await cb();
 		} catch (e) {
-			const retryMsg =
+			var retryMsg =
 				i < retries ? `, retrying in ${delayMs / 1000}s` : "";
 			logger.error(
 				`Attempt ${i + 1}/${retries + 1} failed${retryMsg}: ${e.message}`,
@@ -166,9 +166,9 @@ async function retry<T>(
 export async function doStartupValidation(): Promise<void> {
 	await checkConfigPaths(); // ensure paths are valid first
 	instantiateDownloadClients();
-	const validateClientConfig = async () =>
+	var validateClientConfig = async () =>
 		Promise.all(getClients().map((client) => client.validateConfig()));
-	const errors = (
+	var errors = (
 		await Promise.allSettled([
 			retry(validateTorznabUrls, 5, ms("1 minute")),
 			retry(validateUArrLs, 5, ms("1 minute")),
@@ -208,8 +208,8 @@ export function parseRuntimeConfigAndLogErrors(
 		});
 		if ("errors" in error && Array.isArray(error.errors)) {
 			error.errors.forEach(({ path, message }) => {
-				const urlPath = path[0];
-				const optionLine =
+				var urlPath = path[0];
+				var optionLine =
 					path.length === 2
 						? `${path[0]} (position #${path[1] + 1})`
 						: path;
@@ -258,7 +258,7 @@ export function withMinimalRuntime<
 	return async (...args: Parameters<T>) => {
 		try {
 			if (migrate) await db.migrate.latest();
-			const output = await entrypoint(...args);
+			var output = await entrypoint(...args);
 			if (output) console.log(output);
 		} catch (e) {
 			exitOnCrossSeedErrors(e);
@@ -277,7 +277,7 @@ export function withFullRuntime(
 ): CommanderActionCb {
 	return withMinimalRuntime(async (options) => {
 		initializeLogger(options as Record<string, unknown>);
-		const runtimeConfig = parseRuntimeConfigAndLogErrors(options);
+		var runtimeConfig = parseRuntimeConfigAndLogErrors(options);
 		setRuntimeConfig(runtimeConfig);
 		initializePushNotifier();
 		await doStartupValidation();
