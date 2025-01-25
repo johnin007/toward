@@ -35,14 +35,14 @@ import {
 	nMsAgo,
 } from "./utils.js";
 
-let MAX_INT = Number.MAX_SAFE_INTEGER;
+const MAX_INT = Number.MAX_SAFE_INTEGER;
 
 function logReason(
 	reason: string,
 	searchee: Searchee,
 	mediaType: MediaType,
 ): void {
-	let message = `${getLogString(searchee)} | MediaType: ${mediaType.toUpperCase()} - ${reason}`;
+	const message = `${getLogString(searchee)} | MediaType: ${mediaType.toUpperCase()} - ${reason}`;
 	if (searchee.label === Label.WEBHOOK) {
 		logger.info({
 			label: Label.WEBHOOK,
@@ -71,7 +71,7 @@ export function isSingleEpisode(
 }
 
 function isCrossSeed(searchee: Searchee): boolean {
-	let { linkCategory } = getRuntimeConfig();
+	const { linkCategory } = getRuntimeConfig();
 	if (linkCategory?.length && searchee.category === linkCategory) return true; // qBit, Deluge
 	if (searchee.category === TORRENT_TAG) return true; // Deluge
 	if (searchee.category?.endsWith(TORRENT_CATEGORY_SUFFIX)) return true; // qBit, Deluge
@@ -90,16 +90,16 @@ export function filterByContent(
 		ignoreCrossSeeds: boolean;
 	},
 ): boolean {
-	let {
+	const {
 		fuzzySizeThreshold,
 		includeNonVideos,
 		includeSingleEpisodes,
 		blockList,
 	} = getRuntimeConfig(options?.configOverride);
 
-	let mediaType = getMediaType(searchee);
+	const mediaType = getMediaType(searchee);
 
-	let blockedNote = findBlockedStringInReleaseMaybe(searchee, blockList);
+	const blockedNote = findBlockedStringInReleaseMaybe(searchee, blockList);
 	if (blockedNote) {
 		logReason(
 			`it matches the blocklist: ${blockedNote}`,
@@ -130,7 +130,7 @@ export function filterByContent(
 		return false;
 	}
 
-	let nonVideoSizeRatio =
+	const nonVideoSizeRatio =
 		searchee.files.reduce((acc, cur) => {
 			if (
 				!hasExt([cur], [...VIDEO_EXTENSIONS, ...VIDEO_DISC_EXTENSIONS])
@@ -190,7 +190,7 @@ export function findBlockedStringInReleaseMaybe(
 	blockList: string[],
 ): string | undefined {
 	return blockList.find((blockedStr) => {
-		let { blocklistType, blocklistValue } =
+		const { blocklistType, blocklistValue } =
 			parseBlocklistEntry(blockedStr);
 		switch (blocklistType) {
 			case BlocklistType.NAME:
@@ -247,16 +247,16 @@ export function findBlockedStringInReleaseMaybe(
 export function filterDupesFromSimilar<T extends Searchee>(
 	searchees: T[],
 ): T[] {
-	let filteredSearchees: T[] = [];
-	for (let searchee of [...searchees].sort(comparing((s) => !s.infoHash))) {
-		let isDupe = filteredSearchees.some((s) => {
+	const filteredSearchees: T[] = [];
+	for (const searchee of [...searchees].sort(comparing((s) => !s.infoHash))) {
+		const isDupe = filteredSearchees.some((s) => {
 			if (searchee.title !== s.title) return false;
 			if (searchee.length !== s.length) return false;
 			if (searchee.files.length !== s.files.length) return false;
 			if (searchee.clientHost !== s.clientHost) return false;
-			let potentialFiles = s.files.map((f) => f.length);
+			const potentialFiles = s.files.map((f) => f.length);
 			return searchee.files.every((file) => {
-				let index = potentialFiles.indexOf(file.length);
+				const index = potentialFiles.indexOf(file.length);
 				if (index === -1) return false;
 				potentialFiles.splice(index, 1);
 				return true;
@@ -279,11 +279,11 @@ export async function filterTimestamps(
 	searchee: Searchee,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<boolean> {
-	let { excludeOlder, excludeRecentSearch, seasonFromEpisodes } =
+	const { excludeOlder, excludeRecentSearch, seasonFromEpisodes } =
 		getRuntimeConfig(options?.configOverride);
-	let enabledIndexers = await getEnabledIndexers();
-	let mediaType = getMediaType(searchee);
-	let timestampDataSql: TimestampDataSql = (await db("searchee")
+	const enabledIndexers = await getEnabledIndexers();
+	const mediaType = getMediaType(searchee);
+	const timestampDataSql: TimestampDataSql = (await db("searchee")
 		// @ts-expect-error crossJoin supports string
 		.crossJoin("indexer")
 		.leftOuterJoin("timestamp", {
@@ -316,7 +316,7 @@ export async function filterTimestamps(
 		})
 		.first()) as TimestampDataSql;
 
-	let { earliest_first_search, latest_first_search, earliest_last_search } =
+	const { earliest_first_search, latest_first_search, earliest_last_search } =
 		timestampDataSql;
 	if (
 		seasonFromEpisodes &&
@@ -330,7 +330,7 @@ export async function filterTimestamps(
 		return true;
 	}
 
-	let skipBefore = excludeOlder
+	const skipBefore = excludeOlder
 		? nMsAgo(excludeOlder)
 		: Number.NEGATIVE_INFINITY;
 	// Don't exclude if new indexer was added
@@ -347,7 +347,7 @@ export async function filterTimestamps(
 		}
 	}
 
-	let skipAfter = excludeRecentSearch
+	const skipAfter = excludeRecentSearch
 		? nMsAgo(excludeRecentSearch)
 		: Number.POSITIVE_INFINITY;
 	if (earliest_last_search && earliest_last_search > skipAfter) {
