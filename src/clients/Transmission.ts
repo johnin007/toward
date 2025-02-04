@@ -39,7 +39,7 @@ import {
 } from "../utils.js";
 import { inspect } from "util";
 
-var XTransmissionSessionId = "X-Transmission-Session-Id";
+const XTransmissionSessionId = "X-Transmission-Session-Id";
 type Method =
 	| "session-get"
 	| "torrent-add"
@@ -107,10 +107,10 @@ export default class Transmission implements TorrentClient {
 		retries = 1,
 		timeout = 0,
 	): Promise<T> {
-		var msg = `Calling method ${method} with params ${inspect(args, { depth: null, compact: true })}`;
-		var message = msg.length > 1000 ? `${msg.slice(0, 1000)}...` : msg;
+		const msg = `Calling method ${method} with params ${inspect(args, { depth: null, compact: true })}`;
+		const message = msg.length > 1000 ? `${msg.slice(0, 1000)}...` : msg;
 		logger.verbose({ label: this.label, message });
-		var { username, password, href } = extractCredentialsFromUrl(
+		const { username, password, href } = extractCredentialsFromUrl(
 			this.url,
 		).unwrapOrThrow(
 			new CrossSeedError(
@@ -118,20 +118,20 @@ export default class Transmission implements TorrentClient {
 			),
 		);
 
-		var headers = new Headers();
+		const headers = new Headers();
 		headers.set("Content-Type", "application/json");
 		if (this.xTransmissionSessionId) {
 			headers.set(XTransmissionSessionId, this.xTransmissionSessionId);
 		}
 		if (username && password) {
-			var credentials = Buffer.from(`${username}:${password}`).toString(
+			const credentials = Buffer.from(`${username}:${password}`).toString(
 				"base64",
 			);
 			headers.set("Authorization", `Basic ${credentials}`);
 		}
 
-		var signal = timeout ? AbortSignal.timeout(timeout) : undefined;
-		var response = await fetch(href, {
+		const signal = timeout ? AbortSignal.timeout(timeout) : undefined;
+		const response = await fetch(href, {
 			method: "POST",
 			body: JSON.stringify({ method, arguments: args }),
 			headers,
@@ -144,7 +144,7 @@ export default class Transmission implements TorrentClient {
 			return this.request(method, args, retries - 1);
 		}
 		try {
-			var responseBody = (await response.clone().json()) as Response<T>;
+			const responseBody = (await response.clone().json()) as Response<T>;
 			if (
 				responseBody.result === "success" ||
 				responseBody.result === "duplicate torrent" // slight hack but best solution for now
@@ -177,7 +177,7 @@ export default class Transmission implements TorrentClient {
 	}
 
 	async validateConfig(): Promise<void> {
-		var { torrentDir } = getRuntimeConfig();
+		const { torrentDir } = getRuntimeConfig();
 		try {
 			await this.request("session-get", {}, 1, ms("10 seconds"));
 		} catch (e) {
@@ -223,7 +223,7 @@ export default class Transmission implements TorrentClient {
 			return resultOfErr(InjectionResult.FAILURE);
 		}
 
-		var [{ downloadDir, percentDone }] = queryResponse.torrents;
+		const [{ downloadDir, percentDone }] = queryResponse.torrents;
 
 		if (onlyCompleted && percentDone < 1) {
 			return resultOfErr(InjectionResult.TORRENT_NOT_COMPLETE);
@@ -238,7 +238,7 @@ export default class Transmission implements TorrentClient {
 	): Promise<
 		Result<string, "NOT_FOUND" | "TORRENT_NOT_COMPLETE" | "UNKNOWN_ERROR">
 	> {
-		var result = await this.checkOriginalTorrent(
+		const result = await this.checkOriginalTorrent(
 			meta,
 			options.onlyCompleted,
 		);
@@ -267,7 +267,7 @@ export default class Transmission implements TorrentClient {
 	async isTorrentComplete(
 		infoHash: string,
 	): Promise<Result<boolean, "NOT_FOUND">> {
-		var queryResponse = await this.request<TorrentGetResponseArgs>(
+		const queryResponse = await this.request<TorrentGetResponseArgs>(
 			"torrent-get",
 			{
 				fields: ["percentDone"],
@@ -277,14 +277,14 @@ export default class Transmission implements TorrentClient {
 		if (queryResponse.torrents.length === 0) {
 			return resultOfErr("NOT_FOUND");
 		}
-		var [{ percentDone }] = queryResponse.torrents;
+		const [{ percentDone }] = queryResponse.torrents;
 		return resultOf(percentDone === 1);
 	}
 
 	async isTorrentChecking(
 		infoHash: string,
 	): Promise<Result<boolean, "NOT_FOUND">> {
-		var queryResponse = await this.request<TorrentGetResponseArgs>(
+		const queryResponse = await this.request<TorrentGetResponseArgs>(
 			"torrent-get",
 			{
 				fields: ["status"],
@@ -294,12 +294,12 @@ export default class Transmission implements TorrentClient {
 		if (queryResponse.torrents.length === 0) {
 			return resultOfErr("NOT_FOUND");
 		}
-		var [{ status }] = queryResponse.torrents;
+		const [{ status }] = queryResponse.torrents;
 		return resultOf([1, 2].includes(status));
 	}
 
 	async getAllTorrents(): Promise<TorrentMetadataInClient[]> {
-		var res = await this.request<TorrentGetResponseArgs>("torrent-get", {
+		const res = await this.request<TorrentGetResponseArgs>("torrent-get", {
 			fields: ["hashString", "labels"],
 		});
 		return res.torrents.map((torrent) => ({
@@ -312,9 +312,9 @@ export default class Transmission implements TorrentClient {
 		newSearcheesOnly?: boolean;
 		refresh?: string[];
 	}): Promise<ClientSearcheeResult> {
-		var searchees: SearcheeClient[] = [];
-		var newSearchees: SearcheeClient[] = [];
-		var infoHashes = new Set<string>();
+		const searchees: SearcheeClient[] = [];
+		const newSearchees: SearcheeClient[] = [];
+		const infoHashes = new Set<string>();
 		let torrents: TorrentGetResponseArgs["torrents"];
 		try {
 			torrents = (
@@ -345,14 +345,14 @@ export default class Transmission implements TorrentClient {
 			});
 			return { searchees, newSearchees };
 		}
-		for (var torrent of torrents) {
-			var infoHash = torrent.hashString.toLowerCase();
+		for (const torrent of torrents) {
+			const infoHash = torrent.hashString.toLowerCase();
 			infoHashes.add(infoHash);
-			var dbTorrent = await memDB("torrent")
+			const dbTorrent = await memDB("torrent")
 				.where("info_hash", infoHash)
 				.where("client_host", this.clientHost)
 				.first();
-			var refresh =
+			const refresh =
 				options?.refresh === undefined
 					? false
 					: options.refresh.length === 0
@@ -364,7 +364,7 @@ export default class Transmission implements TorrentClient {
 				}
 				continue;
 			}
-			var files = torrent.files.map((file) => ({
+			const files = torrent.files.map((file) => ({
 				name: basename(file.name),
 				path: file.name,
 				length: file.length,
@@ -376,18 +376,18 @@ export default class Transmission implements TorrentClient {
 				});
 				continue;
 			}
-			var trackers = organizeTrackers(
+			const trackers = organizeTrackers(
 				torrent.trackers.map((tracker) => ({
 					url: tracker.announce,
 					tier: tracker.tier,
 				})),
 			);
-			var { name } = torrent;
-			var title = parseTitle(name, files) ?? name;
-			var length = torrent.totalSize;
-			var savePath = torrent.downloadDir;
-			var tags = torrent.labels;
-			var searchee: SearcheeClient = {
+			const { name } = torrent;
+			const title = parseTitle(name, files) ?? name;
+			const length = torrent.totalSize;
+			const savePath = torrent.downloadDir;
+			const tags = torrent.labels;
+			const searchee: SearcheeClient = {
 				infoHash,
 				name,
 				title,
@@ -421,8 +421,8 @@ export default class Transmission implements TorrentClient {
 		options: { checkOnce: boolean },
 	): Promise<void> {
 		let sleepTime = resumeSleepTime;
-		var maxRemainingBytes = getMaxRemainingBytes(decision);
-		var stopTime = getResumeStopTime();
+		const maxRemainingBytes = getMaxRemainingBytes(decision);
+		const stopTime = getResumeStopTime();
 		let stop = false;
 		while (Date.now() < stopTime) {
 			if (options.checkOnce) {
@@ -430,7 +430,7 @@ export default class Transmission implements TorrentClient {
 				stop = true;
 			}
 			await wait(sleepTime);
-			var queryResponse = await this.request<TorrentGetResponseArgs>(
+			const queryResponse = await this.request<TorrentGetResponseArgs>(
 				"torrent-get",
 				{
 					fields: ["leftUntilDone", "name", "status"],
@@ -441,11 +441,11 @@ export default class Transmission implements TorrentClient {
 				sleepTime = resumeErrSleepTime; // Dropping connections or restart
 				continue;
 			}
-			var [{ leftUntilDone, name, status }] = queryResponse.torrents;
+			const [{ leftUntilDone, name, status }] = queryResponse.torrents;
 			if ([1, 2].includes(status)) {
 				continue;
 			}
-			var torrentLog = `${name} [${sanitizeInfoHash(infoHash)}]`;
+			const torrentLog = `${name} [${sanitizeInfoHash(infoHash)}]`;
 			if (status !== 0) {
 				logger.warn({
 					label: this.label,
@@ -485,7 +485,7 @@ export default class Transmission implements TorrentClient {
 		if (options.destinationDir) {
 			destinationDir = options.destinationDir;
 		} else {
-			var result = await this.getDownloadDir(
+			const result = await this.getDownloadDir(
 				searchee as SearcheeWithInfoHash,
 				{ onlyCompleted: options.onlyCompleted },
 			);
@@ -502,7 +502,7 @@ export default class Transmission implements TorrentClient {
 		let addResponse: TorrentAddResponse;
 
 		try {
-			var toRecheck = shouldRecheck(searchee, decision);
+			const toRecheck = shouldRecheck(searchee, decision);
 			addResponse = await this.request<TorrentAddResponse>(
 				"torrent-add",
 				{
