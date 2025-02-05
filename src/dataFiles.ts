@@ -28,13 +28,13 @@ interface DataEntry {
 	path: string;
 }
 
-const watchers: Map<string, FSWatcher> = new Map();
-const modifiedPaths: Map<string, Set<string>> = new Map();
+var watchers: Map<string, FSWatcher> = new Map();
+var modifiedPaths: Map<string, Set<string>> = new Map();
 
 function createWatcher(dataDir: string): FSWatcher {
 	return watch(dataDir, { recursive: true, persistent: false }, (_, f) => {
 		if (!f) return;
-		const fullPath = resolve(join(dataDir, f));
+		var fullPath = resolve(join(dataDir, f));
 		if (fullPath === resolve(dataDir)) return;
 		modifiedPaths.get(dataDir)!.add(fullPath);
 	}).on("error", (e) => {
@@ -48,19 +48,19 @@ function createWatcher(dataDir: string): FSWatcher {
 export async function indexDataDirs(options: {
 	startup: boolean;
 }): Promise<void> {
-	const { dataDirs, maxDataDepth } = getRuntimeConfig();
+	var { dataDirs, maxDataDepth } = getRuntimeConfig();
 	if (!dataDirs.length) return;
 
 	if (options.startup) {
 		logger.info("Indexing dataDirs for reverse lookup...");
-		for (const dataDir of dataDirs) {
+		for (var dataDir of dataDirs) {
 			modifiedPaths.set(dataDir, new Set());
 			watchers.set(dataDir, createWatcher(dataDir));
 		}
-		const searcheePaths = findSearcheesFromAllDataDirs();
-		const maxUserWatchesPath = "/proc/sys/fs/inotify/max_user_watches";
+		var searcheePaths = findSearcheesFromAllDataDirs();
+		var maxUserWatchesPath = "/proc/sys/fs/inotify/max_user_watches";
 		if (existsSync(maxUserWatchesPath)) {
-			const limit = parseInt(readFileSync(maxUserWatchesPath, "utf8"));
+			var limit = parseInt(readFileSync(maxUserWatchesPath, "utf8"));
 			if (limit < searcheePaths.length * 10) {
 				logger.error(
 					`max_user_watches too low for proper indexing of dataDirs. It is recommended to set fs.inotify.max_user_watches=1048576 in /etc/sysctl.conf (only on the host system if using docker) - current: ${limit}`,
@@ -72,10 +72,10 @@ export async function indexDataDirs(options: {
 
 	await Promise.all(
 		dataDirs.map(async (dataDir) => {
-			const modified = modifiedPaths.get(dataDir)!;
-			const eventPaths: string[] = [];
+			var modified = modifiedPaths.get(dataDir)!;
+			var eventPaths: string[] = [];
 			while (modified.size) {
-				const path: string | undefined = modified.values().next().value;
+				var path: string | undefined = modified.values().next().value;
 				if (!path) continue;
 				if (!modified.delete(path)) continue;
 				eventPaths.push(path);
@@ -89,16 +89,16 @@ export async function indexDataDirs(options: {
 					b.split(sep).filter(isTruthy).length -
 					a.split(sep).filter(isTruthy).length,
 			);
-			const deletedPaths: string[] = [];
-			const paths = Array.from(
+			var deletedPaths: string[] = [];
+			var paths = Array.from(
 				eventPaths.reduce<Set<string>>((acc, path) => {
-					const affectedPaths: string[] = [path];
+					var affectedPaths: string[] = [path];
 					let parentPath = dirname(path);
 					while (resolve(parentPath) !== resolve(dataDir)) {
 						affectedPaths.push(parentPath);
 						parentPath = dirname(parentPath);
 					}
-					for (const affectedPath of affectedPaths.slice(
+					for (var affectedPath of affectedPaths.slice(
 						-maxDataDepth,
 					)) {
 						acc.add(affectedPath);
@@ -124,23 +124,23 @@ export async function indexDataDirs(options: {
  * @param paths The paths to index.
  */
 async function indexDataPaths(paths: string[]): Promise<void> {
-	const { seasonFromEpisodes } = getRuntimeConfig();
-	const memoizedPaths = new Map<string, string[]>();
-	const memoizedLengths = new Map<string, number>();
-	const dataRows: DataEntry[] = [];
-	const ensembleRows: EnsembleEntry[] = [];
-	for (const path of paths) {
-		const files = getFilesFromDataRoot(
+	var { seasonFromEpisodes } = getRuntimeConfig();
+	var memoizedPaths = new Map<string, string[]>();
+	var memoizedLengths = new Map<string, number>();
+	var dataRows: DataEntry[] = [];
+	var ensembleRows: EnsembleEntry[] = [];
+	for (var path of paths) {
+		var files = getFilesFromDataRoot(
 			path,
 			memoizedPaths,
 			memoizedLengths,
 		);
 		if (!files.length) continue;
-		const title = parseTitle(basename(path), files, path);
+		var title = parseTitle(basename(path), files, path);
 		if (!title) continue;
 		dataRows.push({ title, path });
 		if (seasonFromEpisodes) {
-			const ensembleEntries = await indexEnsembleDataEntry(
+			var ensembleEntries = await indexEnsembleDataEntry(
 				title,
 				path,
 				files,
@@ -164,7 +164,7 @@ async function indexEnsembleDataEntry(
 	path: string,
 	files: File[],
 ): Promise<EnsembleEntry[] | null> {
-	const ensemblePieces = await createEnsemblePieces(title, files);
+	var ensemblePieces = await createEnsemblePieces(title, files);
 	if (!ensemblePieces || !ensemblePieces.length) return null;
 	return ensemblePieces.map((ensemblePiece) => ({
 		client_host: null,
@@ -178,15 +178,15 @@ async function indexEnsembleDataEntry(
 export async function getDataByFuzzyName(
 	name: string,
 ): Promise<SearcheeWithoutInfoHash[]> {
-	const allDataEntries: { title: string; path: string }[] =
+	var allDataEntries: { title: string; path: string }[] =
 		await memDB("data");
-	const fullMatch = createKeyTitle(name);
+	var fullMatch = createKeyTitle(name);
 
 	// Attempt to filter torrents in DB to match incoming data before fuzzy check
 	let filteredNames: typeof allDataEntries = [];
 	if (fullMatch) {
 		filteredNames = allDataEntries.filter((dbData) => {
-			const dbMatch = createKeyTitle(dbData.title);
+			var dbMatch = createKeyTitle(dbData.title);
 			return fullMatch === dbMatch;
 		});
 	}
@@ -194,16 +194,16 @@ export async function getDataByFuzzyName(
 	// If none match, proceed with fuzzy name check on all names.
 	filteredNames = filteredNames.length > 0 ? filteredNames : allDataEntries;
 
-	const entriesToDelete: string[] = [];
+	var entriesToDelete: string[] = [];
 	// @ts-expect-error fuse types are confused
-	const potentialMatches = new Fuse(filteredNames, {
+	var potentialMatches = new Fuse(filteredNames, {
 		keys: ["title"],
 		distance: 6,
 		threshold: 0.25,
 	})
 		.search(name)
 		.filter((match) => {
-			const path = match.item.path;
+			var path = match.item.path;
 			if (existsSync(path)) return true;
 			entriesToDelete.push(path);
 			return false;
@@ -219,7 +219,7 @@ export async function getDataByFuzzyName(
 }
 
 export function shouldIgnorePathHeuristically(root: string, isDir: boolean) {
-	const searchBasename = basename(root);
+	var searchBasename = basename(root);
 	if (isDir) {
 		return IGNORED_FOLDERS_SUBSTRINGS.includes(
 			searchBasename.toLowerCase(),
@@ -235,13 +235,13 @@ export function findPotentialNestedRoots(
 	isDirHint?: boolean,
 ): string[] {
 	try {
-		const isDir =
+		var isDir =
 			isDirHint !== undefined ? isDirHint : statSync(root).isDirectory();
 		if (depth <= 0 || shouldIgnorePathHeuristically(root, isDir)) {
 			return [];
 		} else if (depth > 0 && isDir) {
-			const directChildren = readdirSync(root, { withFileTypes: true });
-			const allDescendants = directChildren.flatMap((dirent) =>
+			var directChildren = readdirSync(root, { withFileTypes: true });
+			var allDescendants = directChildren.flatMap((dirent) =>
 				findPotentialNestedRoots(
 					join(root, dirent.name),
 					depth - 1,
@@ -260,7 +260,7 @@ export function findPotentialNestedRoots(
 }
 
 export function findSearcheesFromAllDataDirs(): string[] {
-	const { dataDirs, maxDataDepth } = getRuntimeConfig();
+	var { dataDirs, maxDataDepth } = getRuntimeConfig();
 	return dataDirs.flatMap((dataDir) =>
 		readdirSync(dataDir)
 			.map((dirent) => join(dataDir, dirent))
