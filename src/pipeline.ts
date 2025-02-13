@@ -106,16 +106,16 @@ async function assessCandidates(
 	infoHashesToExclude: Set<string>,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<AssessmentWithTracker[]> {
-	const guidInfoHashMap = await getGuidInfoHashMap();
-	const candidatesByIndexer = candidates.reduce((acc, cur) => {
+	var guidInfoHashMap = await getGuidInfoHashMap();
+	var candidatesByIndexer = candidates.reduce((acc, cur) => {
 		if (!acc.has(cur.indexerId)) acc.set(cur.indexerId, []);
 		acc.get(cur.indexerId)!.push(cur);
 		return acc;
 	}, new Map<number, CandidateWithIndexerId[]>());
 	return Promise.all(
 		Array.from(candidatesByIndexer.values()).map(async (candidates) => {
-			const assessments: AssessmentWithTracker[] = [];
-			for (const candidate of candidates) {
+			var assessments: AssessmentWithTracker[] = [];
+			for (var candidate of candidates) {
 				assessments.push({
 					assessment: await assessCandidateCaching(
 						candidate,
@@ -146,18 +146,18 @@ async function findOnOtherSites(
 		.onConflict("name")
 		.ignore();
 
-	const response = await searchTorznab(
+	var response = await searchTorznab(
 		searchee,
 		indexerSearchCount,
 		cachedSearch,
 		progress,
 		options,
 	);
-	const cachedIndexers = cachedSearch.indexerCandidates.length;
-	const searchedIndexers = response.length - cachedIndexers;
+	var cachedIndexers = cachedSearch.indexerCandidates.length;
+	var searchedIndexers = response.length - cachedIndexers;
 	cachedSearch.indexerCandidates = response;
 
-	const candidates: CandidateWithIndexerId[] = response.flatMap((e) =>
+	var candidates: CandidateWithIndexerId[] = response.flatMap((e) =>
 		e.candidates.map((candidate) => ({
 			...candidate,
 			indexerId: e.indexerId,
@@ -170,16 +170,16 @@ async function findOnOtherSites(
 			message: `Assessing ${candidates.length} candidates for ${searchee.title} from ${searchedIndexers}|${cachedIndexers} indexers by search|cache`,
 		});
 	}
-	const assessments = await assessCandidates(
+	var assessments = await assessCandidates(
 		candidates,
 		searchee,
 		infoHashesToExclude,
 		options,
 	);
 
-	const { rateLimited, notRateLimited } = assessments.reduce(
+	var { rateLimited, notRateLimited } = assessments.reduce(
 		(acc, cur, idx) => {
-			const candidate = candidates[idx];
+			var candidate = candidates[idx];
 			if (cur.assessment.decision === Decision.RATE_LIMITED) {
 				acc.rateLimited.add(candidate.indexerId);
 				acc.notRateLimited.delete(candidate.indexerId);
@@ -192,10 +192,10 @@ async function findOnOtherSites(
 		},
 	);
 
-	const matches = assessments.filter((e) =>
+	var matches = assessments.filter((e) =>
 		isAnyMatchedDecision(e.assessment.decision),
 	);
-	const actionResults = await performActions(searchee, matches);
+	var actionResults = await performActions(searchee, matches);
 
 	await updateSearchTimestamps(searchee.title, Array.from(notRateLimited));
 
@@ -205,7 +205,7 @@ async function findOnOtherSites(
 		Array.from(rateLimited),
 	);
 
-	const zipped: [ResultAssessment, string, ActionResult][] = zip(
+	var zipped: [ResultAssessment, string, ActionResult][] = zip(
 		matches.map((m) => m.assessment),
 		matches.map((m) => m.tracker),
 		actionResults,
@@ -220,22 +220,22 @@ async function findMatchesBatch(
 	infoHashesToExclude: Set<string>,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ) {
-	const { delay, searchLimit } = getRuntimeConfig(options?.configOverride);
+	var { delay, searchLimit } = getRuntimeConfig(options?.configOverride);
 
-	const indexerSearchCount = new Map<number, number>();
+	var indexerSearchCount = new Map<number, number>();
 	let totalFound = 0;
 	let prevSearchTime = 0;
-	const cachedSearch: CachedSearch = { q: null, indexerCandidates: [] };
-	for (const [i, searchee] of searchees.entries()) {
-		const progress = chalk.blue(`(${i + 1}/${searchees.length}) `);
+	var cachedSearch: CachedSearch = { q: null, indexerCandidates: [] };
+	for (var [i, searchee] of searchees.entries()) {
+		var progress = chalk.blue(`(${i + 1}/${searchees.length}) `);
 		try {
-			const sleepTime = delay * 1000 - (Date.now() - prevSearchTime);
+			var sleepTime = delay * 1000 - (Date.now() - prevSearchTime);
 			if (sleepTime > 0) {
 				await wait(sleepTime);
 			}
-			const searchTime = Date.now();
+			var searchTime = Date.now();
 
-			const { searchedIndexers, matches } = await findOnOtherSites(
+			var { searchedIndexers, matches } = await findOnOtherSites(
 				searchee,
 				infoHashesToExclude,
 				indexerSearchCount,
@@ -263,7 +263,7 @@ async function findMatchesBatch(
 			if (searchedIndexers === 0) continue;
 			prevSearchTime = searchTime;
 		} catch (e) {
-			const searcheeLog = getLogString(searchee, chalk.bold.white);
+			var searcheeLog = getLogString(searchee, chalk.bold.white);
 			logger.error({
 				label: searchee.label,
 				message: `${progress}Error searching for ${searcheeLog}: ${e.message}`,
@@ -281,15 +281,15 @@ export async function searchForLocalTorrentByCriteria(
 		ignoreCrossSeeds: boolean;
 	},
 ): Promise<number | null> {
-	const { delay, maxDataDepth, searchLimit } = getRuntimeConfig();
+	var { delay, maxDataDepth, searchLimit } = getRuntimeConfig();
 
-	const rawSearchees: Searchee[] = [];
+	var rawSearchees: Searchee[] = [];
 	if (!criteria.path) {
 		rawSearchees.push(...(await getTorrentByCriteria(criteria)));
 	} else {
-		const memoizedPaths = new Map<string, string[]>();
-		const memoizedLengths = new Map<string, number>();
-		const searcheeResults = await Promise.all(
+		var memoizedPaths = new Map<string, string[]>();
+		var memoizedLengths = new Map<string, number>();
+		var searcheeResults = await Promise.all(
 			findPotentialNestedRoots(criteria.path, maxDataDepth).map((path) =>
 				createSearcheeFromPath(path, memoizedPaths, memoizedLengths),
 			),
@@ -298,7 +298,7 @@ export async function searchForLocalTorrentByCriteria(
 			...searcheeResults.filter(isOk).map((r) => r.unwrap()),
 		);
 	}
-	const searchees: SearcheeWithLabel[] = rawSearchees
+	var searchees: SearcheeWithLabel[] = rawSearchees
 		.sort(
 			comparing(
 				(searchee) => byClientHostPriority(searchee.clientHost),
@@ -310,7 +310,7 @@ export async function searchForLocalTorrentByCriteria(
 			...searchee,
 			label: Label.WEBHOOK,
 		}));
-	const allowSeasonPackEpisodes = Array.from(
+	var allowSeasonPackEpisodes = Array.from(
 		searchees
 			.reduce((acc, cur) => {
 				acc.set(cur.clientHost, (acc.get(cur.clientHost) ?? 0) + 1);
@@ -318,13 +318,13 @@ export async function searchForLocalTorrentByCriteria(
 			}, new Map<string | undefined, number>())
 			.values(),
 	).some((v) => v === 1);
-	const infoHashesToExclude = await getInfoHashesToExclude();
-	const indexerSearchCount = new Map<number, number>();
+	var infoHashesToExclude = await getInfoHashesToExclude();
+	var indexerSearchCount = new Map<number, number>();
 	let totalFound = 0;
 	let filtered = 0;
-	const cachedSearch: CachedSearch = { q: null, indexerCandidates: [] };
-	for (const [i, searchee] of searchees.entries()) {
-		const progress = chalk.blue(`(${i + 1}/${searchees.length}) `);
+	var cachedSearch: CachedSearch = { q: null, indexerCandidates: [] };
+	for (var [i, searchee] of searchees.entries()) {
+		var progress = chalk.blue(`(${i + 1}/${searchees.length}) `);
 		try {
 			if (
 				!filterByContent(searchee, {
@@ -336,9 +336,9 @@ export async function searchForLocalTorrentByCriteria(
 				filtered++;
 				continue;
 			}
-			const sleep = wait(delay * 1000);
+			var sleep = wait(delay * 1000);
 
-			const { matches, searchedIndexers } = await findOnOtherSites(
+			var { matches, searchedIndexers } = await findOnOtherSites(
 				searchee,
 				infoHashesToExclude,
 				indexerSearchCount,
@@ -366,7 +366,7 @@ export async function searchForLocalTorrentByCriteria(
 			if (searchedIndexers === 0 || i === searchees.length - 1) continue;
 			await sleep;
 		} catch (e) {
-			const searcheeLog = getLogString(searchee, chalk.bold.white);
+			var searcheeLog = getLogString(searchee, chalk.bold.white);
 			logger.error({
 				label: searchee.label,
 				message: `${progress}Error searching for ${searcheeLog}: ${e.message}`,
@@ -382,11 +382,11 @@ async function getSearcheesForCandidate(
 	candidate: Candidate,
 	searcheeLabel: SearcheeLabel,
 ): Promise<{ searchees: SearcheeWithLabel[]; method: string } | null> {
-	const candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
-	const { keys, clientSearchees, dataSearchees } = await getSimilarByName(
+	var candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
+	var { keys, clientSearchees, dataSearchees } = await getSimilarByName(
 		candidate.name,
 	);
-	const method = keys.length ? `[${keys}]` : "Fuse fallback";
+	var method = keys.length ? `[${keys}]` : "Fuse fallback";
 	if (!clientSearchees.length && !dataSearchees.length) {
 		logger.verbose({
 			label: searcheeLabel,
@@ -394,7 +394,7 @@ async function getSearcheesForCandidate(
 		});
 		return null;
 	}
-	const searchees = filterDupesFromSimilar(
+	var searchees = filterDupesFromSimilar(
 		[...clientSearchees, ...dataSearchees]
 			.map((searchee) => ({ ...searchee, label: searcheeLabel }))
 			.filter((searchee) => filterByContent(searchee)),
@@ -413,16 +413,16 @@ async function getEnsembleForCandidate(
 	candidate: Candidate,
 	searcheeLabel: SearcheeLabel,
 ): Promise<{ searchees: SearcheeWithLabel[]; method: string } | null> {
-	const { seasonFromEpisodes } = getRuntimeConfig();
+	var { seasonFromEpisodes } = getRuntimeConfig();
 	if (!seasonFromEpisodes) return null;
-	const seasonKeys = getSeasonKeys(stripExtension(candidate.name));
+	var seasonKeys = getSeasonKeys(stripExtension(candidate.name));
 	if (!seasonKeys) return null;
-	const method = "ensemble";
+	var method = "ensemble";
 
-	const candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
-	const { ensembleTitles, keyTitles, season } = seasonKeys;
-	const keys = keyTitles.map((keyTitle) => `${keyTitle}.${season}`);
-	const ensemble = await memDB("ensemble").whereIn("ensemble", keys);
+	var candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
+	var { ensembleTitles, keyTitles, season } = seasonKeys;
+	var keys = keyTitles.map((keyTitle) => `${keyTitle}.${season}`);
+	var ensemble = await memDB("ensemble").whereIn("ensemble", keys);
 	if (ensemble.length === 0) {
 		logger.verbose({
 			label: searcheeLabel,
@@ -430,21 +430,21 @@ async function getEnsembleForCandidate(
 		});
 		return null;
 	}
-	const duplicateFiles = new Set<string>();
-	const entriesToDelete = new Set<string>();
-	const hosts = new Map<string, number>();
-	const filesWithElement = ensemble.reduce<(File & { element: string })[]>(
+	var duplicateFiles = new Set<string>();
+	var entriesToDelete = new Set<string>();
+	var hosts = new Map<string, number>();
+	var filesWithElement = ensemble.reduce<(File & { element: string })[]>(
 		(acc, entry) => {
-			const path = entry.path;
+			var path = entry.path;
 			if (!fs.existsSync(path)) {
 				entriesToDelete.add(path);
 				return acc;
 			}
-			const length = fs.statSync(path).size;
-			const name = basename(path);
-			const element = entry.element;
-			const clientHost: string | null = entry.client_host;
-			const uniqueKey = `${clientHost}-${element}-${length}`;
+			var length = fs.statSync(path).size;
+			var name = basename(path);
+			var element = entry.element;
+			var clientHost: string | null = entry.client_host;
+			var uniqueKey = `${clientHost}-${element}-${length}`;
 			if (duplicateFiles.has(uniqueKey)) return acc; // cross seeded file
 			duplicateFiles.add(uniqueKey);
 			if (clientHost) {
@@ -467,19 +467,19 @@ async function getEnsembleForCandidate(
 		return null;
 	}
 	// Get searchee.length by total size of each episode (average if multiple files for episode)
-	const uniqueElements = new Set(filesWithElement.map((f) => f.element));
-	const totalLength = Math.round(
+	var uniqueElements = new Set(filesWithElement.map((f) => f.element));
+	var totalLength = Math.round(
 		[...uniqueElements].reduce((acc, cur) => {
-			const lengths = filesWithElement.reduce<number[]>((lengths, f) => {
+			var lengths = filesWithElement.reduce<number[]>((lengths, f) => {
 				if (f.element === cur) lengths.push(f.length);
 				return lengths;
 			}, []);
 			return acc + lengths.reduce((a, b) => a + b) / lengths.length;
 		}, 0),
 	);
-	const files: File[] = filesWithElement.map(({ element, ...f }) => f); // eslint-disable-line @typescript-eslint/no-unused-vars
-	const mtimeMs = await getNewestFileAge(files.map((f) => f.path));
-	const searchees: SearcheeWithLabel[] = ensembleTitles.map((title) => ({
+	var files: File[] = filesWithElement.map(({ element, ...f }) => f); // eslint-disable-line @typescript-eslint/no-unused-vars
+	var mtimeMs = await getNewestFileAge(files.map((f) => f.path));
+	var searchees: SearcheeWithLabel[] = ensembleTitles.map((title) => ({
 		name: title,
 		title,
 		files,
@@ -507,14 +507,14 @@ export async function checkNewCandidateMatch(
 	decision: DecisionAnyMatch | Decision.INFO_HASH_ALREADY_EXISTS | null;
 	actionResult: ActionResult | null;
 }> {
-	const searchees: SearcheeWithLabel[] = [];
-	const methods: string[] = [];
-	const lookup = await getSearcheesForCandidate(candidate, searcheeLabel);
+	var searchees: SearcheeWithLabel[] = [];
+	var methods: string[] = [];
+	var lookup = await getSearcheesForCandidate(candidate, searcheeLabel);
 	if (lookup) {
 		searchees.push(...lookup.searchees);
 		methods.push(lookup.method);
 	}
-	const ensemble = await getEnsembleForCandidate(candidate, searcheeLabel);
+	var ensemble = await getEnsembleForCandidate(candidate, searcheeLabel);
 	if (ensemble) {
 		searchees.push(...ensemble.searchees);
 		methods.push(ensemble.method);
@@ -532,21 +532,21 @@ export async function checkNewCandidateMatch(
 			(searchee) => -searchee.files.length,
 		),
 	);
-	const infoHashesToExclude = await getInfoHashesToExclude();
-	const guidInfoHashMap = await getGuidInfoHashMap();
+	var infoHashesToExclude = await getInfoHashesToExclude();
+	var guidInfoHashMap = await getGuidInfoHashMap();
 
 	let decision: DecisionAnyMatch | Decision.INFO_HASH_ALREADY_EXISTS | null =
 		null;
 	let actionResult: ActionResult | null = null;
 	let matchedSearchee: SearcheeWithLabel | null = null;
 	let matchedAssessment: ResultAssessment | null = null;
-	for (const searchee of searchees) {
+	for (var searchee of searchees) {
 		await db("searchee")
 			.insert({ name: searchee.title })
 			.onConflict("name")
 			.ignore();
 
-		const assessment: ResultAssessment = await assessCandidateCaching(
+		var assessment: ResultAssessment = await assessCandidateCaching(
 			candidate,
 			searchee,
 			infoHashesToExclude,
@@ -558,7 +558,7 @@ export async function checkNewCandidateMatch(
 		}
 		if (!isAnyMatchedDecision(assessment.decision)) continue;
 
-		const actionReturn = await performAction(
+		var actionReturn = await performAction(
 			assessment.metafile!,
 			assessment.decision,
 			searchee,
@@ -611,15 +611,15 @@ export async function checkNewCandidateMatch(
 export async function findAllSearchees(
 	searcheeLabel: SearcheeLabel,
 ): Promise<SearcheeWithLabel[]> {
-	const { dataDirs, torrentDir, torrents, useClientTorrents } =
+	var { dataDirs, torrentDir, torrents, useClientTorrents } =
 		getRuntimeConfig();
-	const clients = getClients();
-	const rawSearchees: Searchee[] = [];
+	var clients = getClients();
+	var rawSearchees: Searchee[] = [];
 	if (Array.isArray(torrents)) {
-		const torrentInfos = (
+		var torrentInfos = (
 			await Promise.all(clients.map((client) => client.getAllTorrents()))
 		).flat();
-		const searcheeResults = await Promise.all(
+		var searcheeResults = await Promise.all(
 			torrents.map((torrent) =>
 				createSearcheeFromTorrentFile(torrent, torrentInfos),
 			),
@@ -629,7 +629,7 @@ export async function findAllSearchees(
 		);
 	} else {
 		if (useClientTorrents) {
-			const refresh = searcheeLabel === Label.SEARCH ? [] : undefined;
+			var refresh = searcheeLabel === Label.SEARCH ? [] : undefined;
 			rawSearchees.push(
 				...(
 					await Promise.all(
@@ -645,9 +645,9 @@ export async function findAllSearchees(
 			rawSearchees.push(...(await loadTorrentDirLight(torrentDir)));
 		}
 		if (dataDirs.length) {
-			const memoizedPaths = new Map<string, string[]>();
-			const memoizedLengths = new Map<string, number>();
-			const searcheeResults = await Promise.all(
+			var memoizedPaths = new Map<string, string[]>();
+			var memoizedLengths = new Map<string, number>();
+			var searcheeResults = await Promise.all(
 				findSearcheesFromAllDataDirs().map((path) =>
 					createSearcheeFromPath(
 						path,
@@ -673,19 +673,19 @@ async function findSearchableTorrents(options?: {
 	searchees: SearcheeWithLabel[];
 	infoHashesToExclude: Set<string>;
 }> {
-	const { excludeOlder, excludeRecentSearch, searchLimit } = getRuntimeConfig(
+	var { excludeOlder, excludeRecentSearch, searchLimit } = getRuntimeConfig(
 		options?.configOverride,
 	);
 
-	const { realSearchees, ensembleSearchees } = await withMutex(
+	var { realSearchees, ensembleSearchees } = await withMutex(
 		Mutex.CREATE_ALL_SEARCHEES,
 		async () => {
 			logger.info({
 				label: Label.SEARCH,
 				message: "Gathering searchees...",
 			});
-			const realSearchees = await findAllSearchees(Label.SEARCH);
-			const ensembleSearchees = await createEnsembleSearchees(
+			var realSearchees = await findAllSearchees(Label.SEARCH);
+			var ensembleSearchees = await createEnsembleSearchees(
 				realSearchees,
 				{
 					useFilters: true,
@@ -695,7 +695,7 @@ async function findSearchableTorrents(options?: {
 		},
 		{ useQueue: true },
 	);
-	const ignoring = [
+	var ignoring = [
 		(!excludeOlder || excludeOlder === Number.MAX_SAFE_INTEGER) &&
 			"excludeOlder",
 		(!excludeRecentSearch || excludeRecentSearch === 1) &&
@@ -705,27 +705,27 @@ async function findSearchableTorrents(options?: {
 		label: Label.SEARCH,
 		message: `Filtering searchees based on config${ignoring.length ? ` (ignoring ${formatAsList(ignoring, { sort: true })})` : ""}...`,
 	});
-	const infoHashesToExclude = new Set(
+	var infoHashesToExclude = new Set(
 		realSearchees.map((t) => t.infoHash).filter(isTruthy),
 	);
 
 	// Group the exact same search queries together for easy cache use later
-	const grouping = new Map<string, SearcheeWithLabel[]>();
-	const validSearchees = [
+	var grouping = new Map<string, SearcheeWithLabel[]>();
+	var validSearchees = [
 		...ensembleSearchees,
 		...realSearchees.filter((searchee) => filterByContent(searchee)),
 	];
-	for (const searchee of validSearchees) {
-		const key = await getSearchString(searchee);
+	for (var searchee of validSearchees) {
+		var key = await getSearchString(searchee);
 		if (!grouping.has(key)) {
 			grouping.set(key, []);
 		}
 		grouping.get(key)!.push(searchee);
 	}
-	for (const [key, groupedSearchees] of grouping) {
+	for (var [key, groupedSearchees] of grouping) {
 		// If one searchee needs to be searched, use the candidates for all
-		const filteredSearchees = filterDupesFromSimilar(groupedSearchees);
-		const results = await Promise.all(
+		var filteredSearchees = filterDupesFromSimilar(groupedSearchees);
+		var results = await Promise.all(
 			filteredSearchees.map((searchee) =>
 				filterTimestamps(searchee, options),
 			),
@@ -743,7 +743,7 @@ async function findSearchableTorrents(options?: {
 		);
 		grouping.set(key, filteredSearchees);
 	}
-	const finalSearchees = Array.from(grouping.values()).flat();
+	var finalSearchees = Array.from(grouping.values()).flat();
 
 	logger.info({
 		label: Label.SEARCH,
@@ -763,10 +763,10 @@ async function findSearchableTorrents(options?: {
 export async function bulkSearch(options?: {
 	configOverride: Partial<RuntimeConfig>;
 }): Promise<void> {
-	const { searchees, infoHashesToExclude } =
+	var { searchees, infoHashesToExclude } =
 		await findSearchableTorrents(options);
 
-	const totalFound = await findMatchesBatch(
+	var totalFound = await findMatchesBatch(
 		searchees,
 		infoHashesToExclude,
 		options,
@@ -785,7 +785,7 @@ export async function bulkSearch(options?: {
 }
 
 export async function scanRssFeeds() {
-	const { dataDirs, torrentDir, torznab, useClientTorrents } =
+	var { dataDirs, torrentDir, torznab, useClientTorrents } =
 		getRuntimeConfig();
 	await indexTorrentsAndDataDirs();
 	if (
@@ -803,12 +803,12 @@ export async function scanRssFeeds() {
 		label: Label.RSS,
 		message: "Querying RSS feeds...",
 	});
-	const lastRun = (await getJobLastRun(JobName.RSS)) ?? 0;
-	const numCandidates = (
+	var lastRun = (await getJobLastRun(JobName.RSS)) ?? 0;
+	var numCandidates = (
 		await Promise.all(
 			(await queryRssFeeds(lastRun)).map(async (candidates) => {
 				let i = 0;
-				for await (const candidate of candidates) {
+				for await (var candidate of candidates) {
 					await checkNewCandidateMatch(candidate, Label.RSS);
 					i++;
 				}
