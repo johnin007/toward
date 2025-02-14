@@ -8,7 +8,7 @@ import uniqueDecisions from "./06-uniqueDecisions.js";
 import limits from "./07-limits.js";
 import rss from "./08-rss.js";
 
-export const migrations = {
+export let migrations = {
 	getMigrations: () =>
 		Promise.resolve([
 			initialSchema,
