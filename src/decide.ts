@@ -63,7 +63,7 @@ function logDecision(
 	tracker: string,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): void {
-	const { blockList, matchMode } = getRuntimeConfig(options?.configOverride);
+	var { blockList, matchMode } = getRuntimeConfig(options?.configOverride);
 
 	let reason: string;
 	switch (decision) {
@@ -146,14 +146,14 @@ export function compareFileTrees(
 	if (!searchee.infoHash && !searchee.path) {
 		// Absolute path so need name
 		cmp = (elOfA: File, elOfB: File) => {
-			const lengthsAreEqual = elOfB.length === elOfA.length;
-			const namesAreEqual = elOfB.name === elOfA.name;
+			var lengthsAreEqual = elOfB.length === elOfA.length;
+			var namesAreEqual = elOfB.name === elOfA.name;
 			return lengthsAreEqual && namesAreEqual;
 		};
 	} else {
 		cmp = (elOfA: File, elOfB: File) => {
-			const lengthsAreEqual = elOfB.length === elOfA.length;
-			const pathsAreEqual = elOfB.path === elOfA.path;
+			var lengthsAreEqual = elOfB.length === elOfA.length;
+			var pathsAreEqual = elOfB.path === elOfA.path;
 			return lengthsAreEqual && pathsAreEqual;
 		};
 	}
@@ -167,8 +167,8 @@ export function compareFileTreesIgnoringNames(
 	candidate: Metafile,
 	searchee: Searchee,
 ): boolean {
-	const availableFiles = searchee.files.slice();
-	for (const candidateFile of candidate.files) {
+	var availableFiles = searchee.files.slice();
+	for (var candidateFile of candidate.files) {
 		let matchedSearcheeFiles = availableFiles.filter(
 			(searcheeFile) => searcheeFile.length === candidateFile.length,
 		);
@@ -180,7 +180,7 @@ export function compareFileTreesIgnoringNames(
 		if (matchedSearcheeFiles.length === 0) {
 			return false;
 		}
-		const index = availableFiles.indexOf(matchedSearcheeFiles[0]);
+		var index = availableFiles.indexOf(matchedSearcheeFiles[0]);
 		availableFiles.splice(index, 1);
 	}
 	return true;
@@ -191,8 +191,8 @@ export function getPartialSizeRatio(
 	searchee: Searchee,
 ): number {
 	let matchedSizes = 0;
-	for (const candidateFile of candidate.files) {
-		const searcheeHasFileSize = searchee.files.some(
+	for (var candidateFile of candidate.files) {
+		var searcheeHasFileSize = searchee.files.some(
 			(searcheeFile) => searcheeFile.length === candidateFile.length,
 		);
 		if (searcheeHasFileSize) {
@@ -207,8 +207,8 @@ export function compareFileTreesPartial(
 	searchee: Searchee,
 ): boolean {
 	let matchedSizes = 0;
-	const availableFiles = searchee.files.slice();
-	for (const candidateFile of candidate.files) {
+	var availableFiles = searchee.files.slice();
+	for (var candidateFile of candidate.files) {
 		let matchedSearcheeFiles = availableFiles.filter(
 			(searcheeFile) => searcheeFile.length === candidateFile.length,
 		);
@@ -219,30 +219,30 @@ export function compareFileTreesPartial(
 		}
 		if (matchedSearcheeFiles.length) {
 			matchedSizes += candidateFile.length;
-			const index = availableFiles.indexOf(matchedSearcheeFiles[0]);
+			var index = availableFiles.indexOf(matchedSearcheeFiles[0]);
 			availableFiles.splice(index, 1);
 		}
 	}
-	const totalPieces = Math.ceil(candidate.length / candidate.pieceLength);
-	const availablePieces = Math.floor(matchedSizes / candidate.pieceLength);
+	var totalPieces = Math.ceil(candidate.length / candidate.pieceLength);
+	var availablePieces = Math.floor(matchedSizes / candidate.pieceLength);
 	return availablePieces / totalPieces >= getMinSizeRatio(searchee);
 }
 
 function fuzzySizeDoesMatch(resultSize: number, searchee: Searchee) {
-	const fuzzySizeFactor = getFuzzySizeFactor(searchee);
+	var fuzzySizeFactor = getFuzzySizeFactor(searchee);
 
-	const { length } = searchee;
-	const lowerBound = length - fuzzySizeFactor * length;
-	const upperBound = length + fuzzySizeFactor * length;
+	var { length } = searchee;
+	var lowerBound = length - fuzzySizeFactor * length;
+	var upperBound = length + fuzzySizeFactor * length;
 	return resultSize >= lowerBound && resultSize <= upperBound;
 }
 
 function resolutionDoesMatch(searcheeTitle: string, candidateName: string) {
-	const searcheeRes = searcheeTitle
+	var searcheeRes = searcheeTitle
 		.match(RES_STRICT_REGEX)
 		?.groups?.res?.trim()
 		?.toLowerCase();
-	const candidateRes = candidateName
+	var candidateRes = candidateName
 		.match(RES_STRICT_REGEX)
 		?.groups?.res?.trim()
 		?.toLowerCase();
@@ -251,10 +251,10 @@ function resolutionDoesMatch(searcheeTitle: string, candidateName: string) {
 }
 
 function releaseGroupDoesMatch(searcheeTitle: string, candidateName: string) {
-	const searcheeReleaseGroup = getReleaseGroup(
+	var searcheeReleaseGroup = getReleaseGroup(
 		stripExtension(searcheeTitle),
 	)?.toLowerCase();
-	const candidateReleaseGroup = getReleaseGroup(
+	var candidateReleaseGroup = getReleaseGroup(
 		stripExtension(candidateName),
 	)?.toLowerCase();
 
@@ -269,11 +269,11 @@ function releaseGroupDoesMatch(searcheeTitle: string, candidateName: string) {
 	}
 
 	// Anime naming can cause weird things to match as release groups
-	const searcheeAnimeGroup = searcheeTitle
+	var searcheeAnimeGroup = searcheeTitle
 		.match(ANIME_GROUP_REGEX)
 		?.groups?.group?.trim()
 		?.toLowerCase();
-	const candidateAnimeGroup = candidateName
+	var candidateAnimeGroup = candidateName
 		.match(ANIME_GROUP_REGEX)
 		?.groups?.group?.trim()
 		?.toLowerCase();
@@ -295,8 +295,8 @@ function releaseGroupDoesMatch(searcheeTitle: string, candidateName: string) {
 }
 
 function sourceDoesMatch(searcheeTitle: string, candidateName: string) {
-	const searcheeSource = parseSource(searcheeTitle);
-	const candidateSource = parseSource(candidateName);
+	var searcheeSource = parseSource(searcheeTitle);
+	var candidateSource = parseSource(candidateName);
 	if (!searcheeSource || !candidateSource) return true;
 	return searcheeSource === candidateSource;
 }
@@ -314,15 +314,15 @@ export async function assessCandidate(
 	infoHashesToExclude: Set<string>,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<ResultAssessment> {
-	const { blockList, includeSingleEpisodes, matchMode } = getRuntimeConfig(
+	var { blockList, includeSingleEpisodes, matchMode } = getRuntimeConfig(
 		options?.configOverride,
 	);
 
 	// When metaOrCandidate is a Metafile, skip straight to the
 	// main matching algorithms as we don't need pre-download filtering.
-	const isCandidate = !(metaOrCandidate instanceof Metafile);
+	var isCandidate = !(metaOrCandidate instanceof Metafile);
 	if (isCandidate) {
-		const name = metaOrCandidate.name;
+		var name = metaOrCandidate.name;
 		if (!releaseGroupDoesMatch(searchee.title, name)) {
 			return { decision: Decision.RELEASE_GROUP_MISMATCH };
 		}
@@ -335,7 +335,7 @@ export async function assessCandidate(
 		if (!releaseVersionDoesMatch(searchee.title, name)) {
 			return { decision: Decision.PROPER_REPACK_MISMATCH };
 		}
-		const size = metaOrCandidate.size;
+		var size = metaOrCandidate.size;
 		if (size && !fuzzySizeDoesMatch(size, searchee)) {
 			return { decision: Decision.FUZZY_SIZE_MISMATCH };
 		}
@@ -356,7 +356,7 @@ export async function assessCandidate(
 
 	let metafile: Metafile;
 	if (isCandidate) {
-		const res = await snatch(metaOrCandidate, searchee.label, {
+		var res = await snatch(metaOrCandidate, searchee.label, {
 			retries: 4,
 			delayMs:
 				searchee.label === Label.ANNOUNCE
@@ -364,7 +364,7 @@ export async function assessCandidate(
 					: ms("1 minute"),
 		});
 		if (res.isErr()) {
-			const err = res.unwrapErr();
+			var err = res.unwrapErr();
 			return err === SnatchError.MAGNET_LINK
 				? { decision: Decision.MAGNET_LINK }
 				: err === SnatchError.RATE_LIMITED
@@ -403,18 +403,18 @@ export async function assessCandidate(
 		return { decision: Decision.FILE_TREE_MISMATCH, metafile, metaCached };
 	}
 
-	const perfectMatch = compareFileTrees(metafile, searchee);
+	var perfectMatch = compareFileTrees(metafile, searchee);
 	if (perfectMatch) {
 		return { decision: Decision.MATCH, metafile, metaCached };
 	}
 
-	const sizeMatch = compareFileTreesIgnoringNames(metafile, searchee);
+	var sizeMatch = compareFileTreesIgnoringNames(metafile, searchee);
 	if (sizeMatch && matchMode !== MatchMode.STRICT) {
 		return { decision: Decision.MATCH_SIZE_ONLY, metafile, metaCached };
 	}
 
 	if (matchMode === MatchMode.PARTIAL) {
-		const partialSizeMatch =
+		var partialSizeMatch =
 			getPartialSizeRatio(metafile, searchee) >=
 			getMinSizeRatio(searchee);
 		if (!partialSizeMatch) {
@@ -424,7 +424,7 @@ export async function assessCandidate(
 				metaCached,
 			};
 		}
-		const partialMatch = compareFileTreesPartial(metafile, searchee);
+		var partialMatch = compareFileTreesPartial(metafile, searchee);
 		if (partialMatch) {
 			return { decision: Decision.MATCH_PARTIAL, metafile, metaCached };
 		}
@@ -436,7 +436,7 @@ export async function assessCandidate(
 }
 
 function existsInTorrentCache(infoHash: string): boolean {
-	const torrentPath = path.join(
+	var torrentPath = path.join(
 		appDir(),
 		TORRENT_CACHE_FOLDER,
 		`${infoHash}.cached.torrent`,
@@ -450,7 +450,7 @@ async function getCachedTorrentFile(
 	infoHash: string,
 	options: { deleteOnFail: boolean } = { deleteOnFail: true },
 ): Promise<Result<Metafile, Error>> {
-	const torrentPath = path.join(
+	var torrentPath = path.join(
 		appDir(),
 		TORRENT_CACHE_FOLDER,
 		`${infoHash}.cached.torrent`,
@@ -472,7 +472,7 @@ async function getCachedTorrentFile(
 
 function cacheTorrentFile(meta: Metafile): boolean {
 	if (existsInTorrentCache(meta.infoHash)) return false;
-	const torrentPath = path.join(
+	var torrentPath = path.join(
 		appDir(),
 		TORRENT_CACHE_FOLDER,
 		`${meta.infoHash}.cached.torrent`,
@@ -482,11 +482,11 @@ function cacheTorrentFile(meta: Metafile): boolean {
 }
 
 export async function cleanupTorrentCache(): Promise<void> {
-	const torrentCacheDir = path.join(appDir(), TORRENT_CACHE_FOLDER);
-	const files = readdirSync(torrentCacheDir);
-	const now = Date.now();
-	for (const file of files) {
-		const filePath = path.join(torrentCacheDir, file);
+	var torrentCacheDir = path.join(appDir(), TORRENT_CACHE_FOLDER);
+	var files = readdirSync(torrentCacheDir);
+	var now = Date.now();
+	for (var file of files) {
+		var filePath = path.join(torrentCacheDir, file);
 		if (now - statSync(filePath).atimeMs > ms("1 year")) {
 			logger.verbose(`Deleting ${filePath}`);
 			await db("decision").where("info_hash", file.split(".")[0]).del();
@@ -499,16 +499,16 @@ export async function updateTorrentCache(
 	oldStr: string,
 	newStr: string,
 ): Promise<void> {
-	const torrentCacheDir = path.join(appDir(), TORRENT_CACHE_FOLDER);
-	const files = readdirSync(torrentCacheDir);
+	var torrentCacheDir = path.join(appDir(), TORRENT_CACHE_FOLDER);
+	var files = readdirSync(torrentCacheDir);
 	console.log(`Found ${files.length} files in cache, processing...`);
 	let count = 0;
-	for (const file of files) {
-		const filePath = path.join(torrentCacheDir, file);
+	for (var file of files) {
+		var filePath = path.join(torrentCacheDir, file);
 		try {
-			const torrent: Torrent = bencode.decode(readFileSync(filePath));
-			const announce = torrent.announce?.toString();
-			const announceList = torrent["announce-list"]?.map((tier) =>
+			var torrent: Torrent = bencode.decode(readFileSync(filePath));
+			var announce = torrent.announce?.toString();
+			var announceList = torrent["announce-list"]?.map((tier) =>
 				tier.map((url) => url.toString()),
 			);
 			if (
@@ -523,7 +523,7 @@ export async function updateTorrentCache(
 			console.log(`#${count}: ${filePath}`);
 			let updated = false;
 			if (announce) {
-				const newAnnounce = announce.replace(oldStr, newStr);
+				var newAnnounce = announce.replace(oldStr, newStr);
 				if (announce !== newAnnounce) {
 					updated = true;
 					console.log(`--- ${announce} -> ${newAnnounce}`);
@@ -533,7 +533,7 @@ export async function updateTorrentCache(
 			if (announceList) {
 				torrent["announce-list"] = announceList.map((tier) =>
 					tier.map((url) => {
-						const newAnnounce = url.replace(oldStr, newStr);
+						var newAnnounce = url.replace(oldStr, newStr);
 						if (url === newAnnounce) return Buffer.from(url);
 						updated = true;
 						console.log(`--- ${url} -> ${newAnnounce}`);
@@ -557,7 +557,7 @@ async function assessAndSaveResults(
 	guidInfoHashMap: Map<string, string>,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ) {
-	const assessment = await assessCandidate(
+	var assessment = await assessCandidate(
 		metaOrCandidate,
 		searchee,
 		infoHashesToExclude,
@@ -567,7 +567,7 @@ async function assessAndSaveResults(
 	if (assessment.metaCached && assessment.metafile) {
 		guidInfoHashMap.set(guid, assessment.metafile.infoHash);
 		await db.transaction(async (trx) => {
-			const { id } = await trx("searchee")
+			var { id } = await trx("searchee")
 				.select("id")
 				.where({ name: searchee.title })
 				.first();
@@ -611,15 +611,15 @@ async function guidLookup(
 	link: string,
 	guidInfoHashMap: Map<string, string>,
 ): Promise<string | undefined> {
-	const infoHash = guidInfoHashMap.get(guid) ?? guidInfoHashMap.get(link);
+	var infoHash = guidInfoHashMap.get(guid) ?? guidInfoHashMap.get(link);
 	if (infoHash) return infoHash;
 
-	for (const guidOrLink of [guid, link]) {
+	for (var guidOrLink of [guid, link]) {
 		if (!guidOrLink.includes(".tv/torrent/")) continue;
-		const torrentIdRegex = /\.tv\/torrent\/(\d+)\/group/;
-		const torrentIdStr = guidOrLink.match(torrentIdRegex)?.[1];
+		var torrentIdRegex = /\.tv\/torrent\/(\d+)\/group/;
+		var torrentIdStr = guidOrLink.match(torrentIdRegex)?.[1];
 		if (!torrentIdStr) continue;
-		for (const [key, value] of guidInfoHashMap) {
+		for (var [key, value] of guidInfoHashMap) {
 			if (key.match(torrentIdRegex)?.[1] === torrentIdStr) {
 				return value;
 			}
@@ -634,9 +634,9 @@ export async function assessCandidateCaching(
 	guidInfoHashMap: Map<string, string>,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<ResultAssessment> {
-	const { name, guid, link, tracker } = candidate;
+	var { name, guid, link, tracker } = candidate;
 
-	const cacheEntry = await db("decision")
+	var cacheEntry = await db("decision")
 		.select({
 			id: "decision.id",
 			infoHash: "decision.info_hash",
@@ -647,8 +647,8 @@ export async function assessCandidateCaching(
 		.join("searchee", "decision.searchee_id", "searchee.id")
 		.where({ name: searchee.title, guid })
 		.first();
-	const metaInfoHash = await guidLookup(guid, link, guidInfoHashMap);
-	const metaOrCandidate = metaInfoHash
+	var metaInfoHash = await guidLookup(guid, link, guidInfoHashMap);
+	var metaOrCandidate = metaInfoHash
 		? existsInTorrentCache(metaInfoHash)
 			? (await getCachedTorrentFile(metaInfoHash)).orElse(candidate)
 			: candidate
