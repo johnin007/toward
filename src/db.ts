@@ -4,19 +4,19 @@ import { join } from "path";
 import { appDir } from "./configuration.js";
 import { migrations } from "./migrations/migrations.js";
 
-const filename = join(appDir(), "cross-seed.db");
-const rawSqliteHandle = new Sqlite(filename);
+let filename = join(appDir(), "cross-seed.db");
+let rawSqliteHandle = new Sqlite(filename);
 rawSqliteHandle.pragma("journal_mode = WAL");
 rawSqliteHandle.close();
 
-export const db = knex({
+export let db = knex({
 	client: "better-sqlite3",
 	connection: { filename },
 	migrations: { migrationSource: migrations },
 	useNullAsDefault: true,
 });
 
-export const memDB = knex({
+export let memDB = knex({
 	client: "better-sqlite3",
 	connection: ":memory:",
 	useNullAsDefault: true,
