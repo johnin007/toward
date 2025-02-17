@@ -23,7 +23,7 @@ import { indexTorrentsAndDataDirs } from "./torrent.js";
 import { formatAsList, humanReadableDate, sanitizeInfoHash } from "./utils.js";
 import { getRuntimeConfig, RuntimeConfig } from "./runtimeConfig.js";
 
-var ANNOUNCE_SCHEMA = z
+const ANNOUNCE_SCHEMA = z
 	.object({
 		name: z
 			.string()
@@ -40,7 +40,7 @@ var ANNOUNCE_SCHEMA = z
 	.required()
 	.refine((data) => data.guid === data.link);
 
-var WEBHOOK_SCHEMA = z
+const WEBHOOK_SCHEMA = z
 	.object({
 		infoHash: z.string().length(40),
 		path: z.string().refine((path) => path && existsSync(path)),
@@ -67,7 +67,7 @@ var WEBHOOK_SCHEMA = z
 	.partial()
 	.refine((data) => !data.infoHash !== !data.path);
 
-var JOB_SCHEMA = z
+const JOB_SCHEMA = z
 	.object({
 		name: z.string(),
 		ignoreExcludeRecentSearch: z
@@ -83,7 +83,7 @@ var JOB_SCHEMA = z
 
 function getData(req: IncomingMessage): Promise<string> {
 	return new Promise((resolve) => {
-		var chunks: string[] = [];
+		const chunks: string[] = [];
 		req.on("data", (chunk) => {
 			chunks.push(chunk.toString());
 		});
@@ -124,12 +124,12 @@ async function authorize(
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<boolean> {
-	var url = new URL(req.url!, `http://${req.headers.host}`);
-	var apiKey =
+	const url = new URL(req.url!, `http://${req.headers.host}`);
+	const apiKey =
 		(req.headers["x-api-key"] as string) ?? url.searchParams.get("apikey");
-	var isAuthorized = await checkApiKey(apiKey);
+	const isAuthorized = await checkApiKey(apiKey);
 	if (!isAuthorized) {
-		var ipAddress =
+		const ipAddress =
 			(req.headers["x-forwarded-for"] as string)?.split(",").shift() ||
 			req.socket?.remoteAddress;
 		logger.error({
@@ -152,7 +152,7 @@ async function search(
 	res: ServerResponse,
 ): Promise<void> {
 	await indexTorrentsAndDataDirs();
-	var dataStr = await getData(req);
+	const dataStr = await getData(req);
 	let data;
 	try {
 		data = parseData(dataStr);
@@ -169,7 +169,7 @@ async function search(
 	try {
 		data = WEBHOOK_SCHEMA.parse(data);
 	} catch {
-		var message = `A valid infoHash or an accessible path must be provided (infoHash is recommended: see https://www.cross-seed.org/docs/reference/api#post-apiwebhook): ${inspect(data)}`;
+		const message = `A valid infoHash or an accessible path must be provided (infoHash is recommended: see https://www.cross-seed.org/docs/reference/api#post-apiwebhook): ${inspect(data)}`;
 		logger.error({ label: Label.WEBHOOK, message });
 		res.writeHead(400);
 		res.end(message);
@@ -178,7 +178,7 @@ async function search(
 	res.writeHead(204);
 	res.end();
 
-	var criteriaStr = data.infoHash
+	const criteriaStr = data.infoHash
 		? inspect(data).replace(data.infoHash, sanitizeInfoHash(data.infoHash))
 		: inspect(data);
 
@@ -187,7 +187,7 @@ async function search(
 		message: `Received search request: ${criteriaStr}`,
 	});
 
-	var configOverride: Partial<RuntimeConfig> = {
+	const configOverride: Partial<RuntimeConfig> = {
 		includeSingleEpisodes: data.includeSingleEpisodes,
 		includeNonVideos: data.includeNonVideos,
 		excludeRecentSearch: data.ignoreExcludeRecentSearch ? 1 : undefined,
@@ -225,15 +225,15 @@ function determineResponse(result: {
 	decision: DecisionAnyMatch | Decision.INFO_HASH_ALREADY_EXISTS | null;
 	actionResult: ActionResult | null;
 }): { status: number; state: string } {
-	var injected = result.actionResult === InjectionResult.SUCCESS;
-	var added =
+	const injected = result.actionResult === InjectionResult.SUCCESS;
+	const added =
 		injected ||
 		result.actionResult === InjectionResult.FAILURE ||
 		result.actionResult === SaveResult.SAVED;
-	var exists =
+	const exists =
 		result.decision === Decision.INFO_HASH_ALREADY_EXISTS ||
 		result.actionResult === InjectionResult.ALREADY_EXISTS;
-	var incomplete =
+	const incomplete =
 		result.actionResult === InjectionResult.TORRENT_NOT_COMPLETE;
 
 	let status: number;
@@ -262,9 +262,9 @@ async function announce(
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<void> {
-	var { dataDirs, torrentDir, useClientTorrents } = getRuntimeConfig();
+	const { dataDirs, torrentDir, useClientTorrents } = getRuntimeConfig();
 	await indexTorrentsAndDataDirs();
-	var dataStr = await getData(req);
+	const dataStr = await getData(req);
 	let data;
 	try {
 		data = parseData(dataStr);
@@ -281,7 +281,7 @@ async function announce(
 	try {
 		data = ANNOUNCE_SCHEMA.parse(data);
 	} catch ({ errors }) {
-		var message = `Missing required params (https://www.cross-seed.org/docs/v6-migration#autobrr-update): {${formatAsList(
+		const message = `Missing required params (https://www.cross-seed.org/docs/v6-migration#autobrr-update): {${formatAsList(
 			errors.map(({ path }) => path.join(".")),
 			{ sort: true, type: "unit" },
 		)}} in ${inspect(data)}\n${inspect(errors)}`;
@@ -296,22 +296,22 @@ async function announce(
 		message: `Received announce from ${data.tracker}: ${data.name}`,
 	});
 
-	var candidate = data as Candidate;
-	var candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
+	const candidate = data as Candidate;
+	const candidateLog = `${chalk.bold.white(candidate.name)} from ${candidate.tracker}`;
 	try {
 		if (!useClientTorrents && !torrentDir && !dataDirs.length) {
 			throw new Error(
 				`Announce requires at least one of useClientTorrents, torrentDir, or dataDirs to be set`,
 			);
 		}
-		var result = await checkNewCandidateMatch(candidate, Label.ANNOUNCE);
+		const result = await checkNewCandidateMatch(candidate, Label.ANNOUNCE);
 		if (!result.decision) {
 			res.writeHead(204);
 			res.end();
 			return;
 		}
 
-		var { status, state } = determineResponse(result);
+		const { status, state } = determineResponse(result);
 		if (result.actionResult !== InjectionResult.SUCCESS) {
 			logger.info({
 				label: Label.ANNOUNCE,
@@ -338,7 +338,7 @@ async function runJob(
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<void> {
-	var dataStr = await getData(req);
+	const dataStr = await getData(req);
 	let data;
 	try {
 		data = parseData(dataStr);
@@ -355,7 +355,7 @@ async function runJob(
 	try {
 		data = JOB_SCHEMA.parse(data);
 	} catch {
-		var message = `Job name must be one of ${formatAsList(Object.values(JobName), { sort: true, style: "narrow", type: "unit" })} - received: ${inspect(data)}`;
+		const message = `Job name must be one of ${formatAsList(Object.values(JobName), { sort: true, style: "narrow", type: "unit" })} - received: ${inspect(data)}`;
 		logger.error({ label: Label.SERVER, message });
 		res.writeHead(400);
 		res.end(message);
@@ -367,9 +367,9 @@ async function runJob(
 		message: `Received job request: ${inspect(data)}`,
 	});
 
-	var job = getJobs().find((j) => j.name === data.name);
+	const job = getJobs().find((j) => j.name === data.name);
 	if (!job) {
-		var message = `${data.name}: unable to run, disabled in config`;
+		const message = `${data.name}: unable to run, disabled in config`;
 		logger.error({ label: Label.SCHEDULER, message });
 		res.writeHead(404);
 		res.end(message);
@@ -377,16 +377,16 @@ async function runJob(
 	}
 
 	if (job.isActive) {
-		var message = `${job.name}: already running`;
+		const message = `${job.name}: already running`;
 		logger.error({ label: Label.SCHEDULER, message });
 		res.writeHead(409);
 		res.end(message);
 		return;
 	}
 
-	var lastRun = (await getJobLastRun(job.name)) ?? 0;
+	const lastRun = (await getJobLastRun(job.name)) ?? 0;
 	if (Date.now() < lastRun) {
-		var message = `${job.name}: not elligible to run ahead of schedule, next scheduled run is at ${humanReadableDate(lastRun + job.cadence)} (triggering an early run is allowed after ${humanReadableDate(lastRun)})`;
+		const message = `${job.name}: not elligible to run ahead of schedule, next scheduled run is at ${humanReadableDate(lastRun + job.cadence)} (triggering an early run is allowed after ${humanReadableDate(lastRun)})`;
 		logger.error({ label: Label.SCHEDULER, message });
 		res.writeHead(409);
 		res.end(message);
@@ -400,7 +400,7 @@ async function runJob(
 			? Number.MAX_SAFE_INTEGER
 			: undefined,
 	};
-	var message = `${job.name}: running ahead of schedule`;
+	const message = `${job.name}: running ahead of schedule`;
 	logger.info({ label: Label.SCHEDULER, message });
 	res.writeHead(200);
 	res.end(message);
@@ -434,14 +434,14 @@ async function handleRequest(
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<void> {
-	var checkMethod = (method: string, endpoint: string) => {
+	const checkMethod = (method: string, endpoint: string) => {
 		if (req.method === method) return true;
 		res.writeHead(405);
 		res.end(`Method ${req.method} not allowed for ${endpoint}`);
 		return false;
 	};
 
-	var endpoint = req.url!.split("?")[0];
+	const endpoint = req.url!.split("?")[0];
 	switch (endpoint) {
 		case "/api/announce":
 			if (!checkMethod("POST", endpoint)) return;
@@ -463,7 +463,7 @@ async function handleRequest(
 			if (!(await authorize(req, res))) return;
 			return status(req, res);
 		default: {
-			var message = `Unknown endpoint: ${endpoint}`;
+			const message = `Unknown endpoint: ${endpoint}`;
 			logger.error({ label: Label.SERVER, message });
 			res.writeHead(404);
 			res.end(message);
@@ -478,7 +478,7 @@ async function handleRequest(
 export async function serve(port?: number, host?: string): Promise<void> {
 	if (!port) return;
 	return new Promise((resolve) => {
-		var server = http.createServer(handleRequest);
+		const server = http.createServer(handleRequest);
 		server.listen(port, host);
 		function stop() {
 			server.close(() => {
