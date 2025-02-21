@@ -6,8 +6,8 @@ import { pathToFileURL } from "url";
 import { Action, MatchMode } from "./constants.js";
 import { CrossSeedError } from "./errors.js";
 
-let require = createRequire(import.meta.url);
-let packageDotJson = require("../package.json");
+const require = createRequire(import.meta.url);
+const packageDotJson = require("../package.json");
 
 export interface FileConfig {
 	action?: Action;
@@ -54,7 +54,7 @@ export interface FileConfig {
 	radarr?: string[];
 }
 
-export let UNPARSABLE_CONFIG_MESSAGE = `
+export const UNPARSABLE_CONFIG_MESSAGE = `
 Your config file is improperly formatted. The location of the error is above, \
 but you may have to look backwards to see the root cause.
 Make sure that
@@ -71,7 +71,7 @@ Make sure that
  * @return a string representing the absolute path to cross-seed config directory
  */
 export function appDir(): string {
-	let appDir =
+	const appDir =
 		process.env.CONFIG_DIR ||
 		(process.platform === "win32"
 			? path.resolve(process.env.LOCALAPPDATA!, packageDotJson.name)
@@ -83,7 +83,7 @@ export function appDir(): string {
 			mkdirSync(appDir, { recursive: true });
 			return appDir;
 		}
-		let dockerMessage =
+		const dockerMessage =
 			process.env.DOCKER_ENV === "true"
 				? ` Use chown to set the owner to ${process.getuid!()}:${process.getgid!()}`
 				: "";
@@ -95,15 +95,15 @@ export function appDir(): string {
 }
 
 export function createAppDirHierarchy(): void {
-	let appDirPath = appDir();
+	const appDirPath = appDir();
 	mkdirSync(path.join(appDirPath, "torrent_cache"), { recursive: true });
 	mkdirSync(path.join(appDirPath, "logs"), { recursive: true });
 }
 
 export function generateConfig(): void {
 	createAppDirHierarchy();
-	let dest = path.join(appDir(), "config.js");
-	let templatePath = path.join("./config.template.cjs");
+	const dest = path.join(appDir(), "config.js");
+	const templatePath = path.join("./config.template.cjs");
 	if (existsSync(dest)) {
 		console.log("Configuration file already exists.");
 		return;
@@ -117,7 +117,7 @@ export async function getFileConfig(): Promise<FileConfig> {
 		generateConfig();
 	}
 
-	let configPath = path.join(appDir(), "config.js");
+	const configPath = path.join(appDir(), "config.js");
 
 	try {
 		return (await import(pathToFileURL(configPath).toString())).default;
@@ -125,7 +125,7 @@ export async function getFileConfig(): Promise<FileConfig> {
 		if (e.code === "ERR_MODULE_NOT_FOUND") {
 			return {};
 		} else if (e instanceof SyntaxError) {
-			let location = e.stack!.split("\n").slice(0, 3).join("\n");
+			const location = e.stack!.split("\n").slice(0, 3).join("\n");
 			throw new CrossSeedError(
 				`\n${chalk.red(location)}\n\n${UNPARSABLE_CONFIG_MESSAGE}`,
 			);
