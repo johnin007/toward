@@ -122,7 +122,7 @@ export type CachedSearch = {
 };
 
 function parseTorznabResults(xml: TorznabResults): Candidate[] {
-	var items = xml?.rss?.channel?.[0]?.item;
+	const items = xml?.rss?.channel?.[0]?.item;
 	if (!items || !Array.isArray(items)) {
 		return [];
 	}
@@ -143,20 +143,20 @@ function parseTorznabResults(xml: TorznabResults): Candidate[] {
 }
 
 function parseTorznabCaps(xml: TorznabCaps): Caps {
-	var limits = xml?.caps?.limits?.map((limit) => ({
+	const limits = xml?.caps?.limits?.map((limit) => ({
 		default: parseInt(limit.$.default),
 		max: parseInt(limit.$.max),
 	}))[0] ?? { default: 100, max: 100 };
 
-	var searchingSection = xml?.caps?.searching?.[0];
-	var isAvailable = (searchTechnique: TorznabSearchTechnique | undefined) =>
+	const searchingSection = xml?.caps?.searching?.[0];
+	const isAvailable = (searchTechnique: TorznabSearchTechnique | undefined) =>
 		searchTechnique?.[0]?.$?.available === "yes";
 
 	function getSupportedIds(
 		searchTechnique: TorznabSearchTechnique | undefined,
 	): IdSearchCaps {
-		var supportedParamsStr = searchTechnique?.[0]?.$?.supportedParams;
-		var supportedIds =
+		const supportedParamsStr = searchTechnique?.[0]?.$?.supportedParams;
+		const supportedIds =
 			supportedParamsStr
 				?.split(",")
 				?.filter((token) => token.includes("id")) ?? [];
@@ -169,15 +169,15 @@ function parseTorznabCaps(xml: TorznabCaps): Caps {
 		};
 	}
 
-	var categoryCaps = xml?.caps?.categories?.[0]?.category;
+	const categoryCaps = xml?.caps?.categories?.[0]?.category;
 
 	function getCatCaps(item: CategoryXmlElement[] | undefined) {
-		var categories = (item ?? []).map((cat) => ({
+		const categories = (item ?? []).map((cat) => ({
 			id: parseInt(cat.$.id),
 			name: cat.$.name.toLowerCase(),
 		}));
 
-		var caps = {
+		const caps = {
 			movie: false,
 			tv: false,
 			anime: false,
@@ -186,11 +186,11 @@ function parseTorznabCaps(xml: TorznabCaps): Caps {
 			book: false,
 			additional: false,
 		};
-		var keys = Object.keys(caps);
+		const keys = Object.keys(caps);
 		keys.splice(keys.indexOf("additional"), 1);
-		for (var { id, name } of categories) {
+		for (const { id, name } of categories) {
 			let isAdditional = true;
-			for (var cap of keys) {
+			for (const cap of keys) {
 				if (name.includes(cap)) {
 					caps[cap] = true;
 					isAdditional = false;
@@ -220,14 +220,14 @@ async function createTorznabSearchQueries(
 	caps: Caps,
 	parsedMedia?: ParsedMedia,
 ): Promise<Query[]> {
-	var stem = stripExtension(searchee.title);
-	var relevantIds: IdSearchParams = parsedMedia
+	const stem = stripExtension(searchee.title);
+	const relevantIds: IdSearchParams = parsedMedia
 		? await getRelevantArrIds(caps, parsedMedia)
 		: {};
-	var useIds = Object.values(relevantIds).some(isTruthy);
+	const useIds = Object.values(relevantIds).some(isTruthy);
 	if (mediaType === MediaType.EPISODE && caps.tvSearch) {
-		var match = stem.match(EP_REGEX);
-		var groups = match!.groups!;
+		const match = stem.match(EP_REGEX);
+		const groups = match!.groups!;
 		return [
 			{
 				t: "tvsearch",
@@ -238,10 +238,10 @@ async function createTorznabSearchQueries(
 					: `${groups.month}/${groups.day}`,
 				...relevantIds,
 			},
-		] as var;
+		] as const;
 	} else if (mediaType === MediaType.SEASON && caps.tvSearch) {
-		var match = stem.match(SEASON_REGEX);
-		var groups = match!.groups!;
+		const match = stem.match(SEASON_REGEX);
+		const groups = match!.groups!;
 		return [
 			{
 				t: "tvsearch",
@@ -249,7 +249,7 @@ async function createTorznabSearchQueries(
 				season: extractInt(groups.season),
 				...relevantIds,
 			},
-		] as var;
+		] as const;
 	} else if (mediaType === MediaType.MOVIE && caps.movieSearch) {
 		return [
 			{
@@ -257,17 +257,17 @@ async function createTorznabSearchQueries(
 				q: useIds ? undefined : reformatTitleForSearching(stem),
 				...relevantIds,
 			},
-		] as var;
+		] as const;
 	}
 	if (useIds && caps.tvSearch && parsedMedia?.series) {
-		var eps = parsedMedia.episodes;
-		var season = eps.length > 0 ? eps[0].seasonNumber : undefined;
-		var ep = eps.length === 1 ? eps[0].episodeNumber : undefined;
+		const eps = parsedMedia.episodes;
+		const season = eps.length > 0 ? eps[0].seasonNumber : undefined;
+		const ep = eps.length === 1 ? eps[0].episodeNumber : undefined;
 		return [
 			{ t: "tvsearch", q: undefined, season, ep, ...relevantIds },
-		] as var;
+		] as const;
 	} else if (useIds && caps.movieSearch && parsedMedia?.movie) {
-		return [{ t: "movie", q: undefined, ...relevantIds }] as var;
+		return [{ t: "movie", q: undefined, ...relevantIds }] as const;
 	} else if (mediaType === MediaType.ANIME) {
 		return getAnimeQueries(stem).map((animeQuery) => ({
 			t: "search",
@@ -279,30 +279,30 @@ async function createTorznabSearchQueries(
 				t: "search",
 				q: cleanTitle(stripMetaFromName(stem)),
 			},
-		] as var;
+		] as const;
 	} else if (mediaType === MediaType.BOOK && searchee.path) {
 		return [
 			{
 				t: "search",
 				q: cleanTitle(stem.replace(CALIBRE_INDEXNUM_REGEX, "")),
 			},
-		] as var;
+		] as const;
 	}
 	return [
 		{
 			t: "search",
 			q: cleanTitle(stem),
 		},
-	] as var;
+	] as const;
 }
 
 export async function getSearchString(searchee: Searchee): Promise<string> {
-	var mediaType = getMediaType(searchee);
-	var params = (
+	const mediaType = getMediaType(searchee);
+	const params = (
 		await createTorznabSearchQueries(searchee, mediaType, ALL_CAPS)
 	)[0];
-	var season = params.season !== undefined ? `.S${params.season}` : "";
-	var ep = params.ep !== undefined ? `.E${params.ep}` : "";
+	const season = params.season !== undefined ? `.S${params.season}` : "";
+	const ep = params.ep !== undefined ? `.E${params.ep}` : "";
 	return `${params.q}${season}${ep}`.toLowerCase();
 }
 
@@ -318,13 +318,13 @@ export async function logQueries(
 	searcheeTitle: string,
 	mediaType: MediaType,
 ): Promise<void> {
-	var stem = stripExtension(searcheeTitle);
+	const stem = stripExtension(searcheeTitle);
 	logger.info(
 		// @ts-expect-error needs conversion to use searchee instead of stem
 		`RAW: ${inspect(await createTorznabSearchQueries(stem, mediaType, ALL_CAPS))}`,
 	);
-	var res = await scanAllArrsForMedia(searcheeTitle, mediaType);
-	var parsedMedia = res.orElse(undefined);
+	const res = await scanAllArrsForMedia(searcheeTitle, mediaType);
+	const parsedMedia = res.orElse(undefined);
 	logger.info(
 		// @ts-expect-error needs conversion to use searchee instead of stem
 		`ID: ${inspect(await createTorznabSearchQueries(stem, mediaType, ALL_CAPS, parsedMedia))}`,
@@ -357,8 +357,8 @@ export async function* rssPager(
 	indexer: Indexer,
 	timeSinceLastRun: number,
 ): AsyncGenerator<Candidate, void, undefined> {
-	var limit = indexer.limits.max;
-	var lastSeenGuid: string | undefined = (
+	const limit = indexer.limits.max;
+	const lastSeenGuid: string | undefined = (
 		await db("rss")
 			.where({ indexer_id: indexer.id })
 			.select("last_seen_guid")
@@ -366,7 +366,7 @@ export async function* rssPager(
 	)?.last_seen_guid;
 	let newLastSeenGuid: string | undefined = lastSeenGuid;
 	let pageBackUntil = 0;
-	var maxPage = 10;
+	const maxPage = 10;
 	let i = -1;
 	while (++i < maxPage) {
 		let currentPageCandidates: Candidate[];
@@ -396,7 +396,7 @@ export async function* rssPager(
 
 		let newCandidates: Candidate[] = [];
 		let found = false;
-		for (var candidate of currentPageCandidates) {
+		for (const candidate of currentPageCandidates) {
 			if (candidate.guid === lastSeenGuid) {
 				found = true;
 				break;
@@ -446,8 +446,8 @@ export async function* rssPager(
 export async function queryRssFeeds(
 	lastRun: number,
 ): Promise<AsyncGenerator<Candidate>[]> {
-	var timeSinceLastRun = Date.now() - lastRun;
-	var indexers = await getEnabledIndexers();
+	const timeSinceLastRun = Date.now() - lastRun;
+	const indexers = await getEnabledIndexers();
 	return indexers.map((indexer) => rssPager(indexer, timeSinceLastRun));
 }
 
@@ -458,7 +458,7 @@ export async function searchTorznab(
 	progress: string,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<IndexerCandidates[]> {
-	var { torznab } = getRuntimeConfig();
+	const { torznab } = getRuntimeConfig();
 	if (torznab.length === 0) {
 		logger.warn({
 			label: Label.SEARCH,
@@ -467,8 +467,8 @@ export async function searchTorznab(
 		return [];
 	}
 
-	var mediaType = getMediaType(searchee);
-	var { indexersToSearch, parsedMedia } = await getAndLogIndexers(
+	const mediaType = getMediaType(searchee);
+	const { indexersToSearch, parsedMedia } = await getAndLogIndexers(
 		searchee,
 		indexerSearchCount,
 		cachedSearch,
@@ -476,10 +476,10 @@ export async function searchTorznab(
 		progress,
 		options,
 	);
-	var indexerCandidates = await makeRequests(
+	const indexerCandidates = await makeRequests(
 		indexersToSearch,
 		async (indexer): Promise<Query[]> => {
-			var caps = {
+			const caps = {
 				search: indexer.searchCap,
 				tvSearch: indexer.tvSearchCap,
 				movieSearch: indexer.movieSearchCap,
@@ -500,27 +500,27 @@ export async function searchTorznab(
 }
 
 export async function syncWithDb() {
-	var { torznab } = getRuntimeConfig();
+	const { torznab } = getRuntimeConfig();
 
-	var dbIndexers = await getAllIndexers();
+	const dbIndexers = await getAllIndexers();
 
-	var inConfigButNotInDb = torznab.filter(
+	const inConfigButNotInDb = torznab.filter(
 		(configIndexer) =>
 			!dbIndexers.some(
 				(dbIndexer) => dbIndexer.url === sanitizeUrl(configIndexer),
 			),
 	);
 
-	var inDbButNotInConfig = dbIndexers.filter(
+	const inDbButNotInConfig = dbIndexers.filter(
 		(dbIndexer) =>
 			!torznab.some(
 				(configIndexer) => sanitizeUrl(configIndexer) === dbIndexer.url,
 			),
 	);
 
-	var apikeyUpdates = dbIndexers.reduce<{ id: number; apikey: string }[]>(
+	const apikeyUpdates = dbIndexers.reduce<{ id: number; apikey: string }[]>(
 		(acc, dbIndexer) => {
-			var configIndexer = torznab.find(
+			const configIndexer = torznab.find(
 				(configIndexer) => sanitizeUrl(configIndexer) === dbIndexer.url,
 			);
 			if (
@@ -560,7 +560,7 @@ export async function syncWithDb() {
 	}
 
 	await db.transaction(async (trx) => {
-		for (var apikeyUpdate of apikeyUpdates) {
+		for (const apikeyUpdate of apikeyUpdates) {
 			await trx("indexer")
 				.where({ id: apikeyUpdate.id })
 				.update({ apikey: apikeyUpdate.apikey });
@@ -577,12 +577,12 @@ export function assembleUrl(
 	apikey: string,
 	params: Query,
 ): string {
-	var url = new URL(baseUrl);
-	var searchParams = new URLSearchParams();
+	const url = new URL(baseUrl);
+	const searchParams = new URLSearchParams();
 
 	searchParams.set("apikey", apikey);
 
-	for (var [key, value] of Object.entries(params)) {
+	for (const [key, value] of Object.entries(params)) {
 		if (value != null) searchParams.set(key, value);
 	}
 
@@ -602,7 +602,7 @@ async function fetchCaps(indexer: {
 			{ signal: AbortSignal.timeout(ms("10 seconds")) },
 		);
 	} catch (e) {
-		var error = new Error(
+		const error = new Error(
 			`Indexer ${indexer.url} failed to respond, check verbose logs: ${e.message}`,
 		);
 		logger.error(error.message);
@@ -610,7 +610,7 @@ async function fetchCaps(indexer: {
 		throw error;
 	}
 
-	var responseText = await response.text();
+	const responseText = await response.text();
 	if (!response.ok) {
 		let error: Error;
 		if (response.status === 429) {
@@ -633,10 +633,10 @@ async function fetchCaps(indexer: {
 		throw error;
 	}
 	try {
-		var parsedXml = await xml2js.parseStringPromise(responseText);
+		const parsedXml = await xml2js.parseStringPromise(responseText);
 		return parseTorznabCaps(parsedXml);
 	} catch (_) {
-		var error = new Error(
+		const error = new Error(
 			`Indexer ${indexer.url} responded with invalid XML when fetching caps, check verbose logs`,
 		);
 		logger.error(error.message);
@@ -674,25 +674,25 @@ function collateOutcomes<Correlator, SuccessReturnType>(
 }
 
 export async function updateCaps(): Promise<void> {
-	var indexers = await getAllIndexers();
-	var outcomes = await Promise.allSettled<Caps>(
+	const indexers = await getAllIndexers();
+	const outcomes = await Promise.allSettled<Caps>(
 		indexers.map((indexer) => fetchCaps(indexer)),
 	);
-	var { fulfilled } = collateOutcomes<number, Caps>(
+	const { fulfilled } = collateOutcomes<number, Caps>(
 		indexers.map((i) => i.id),
 		outcomes,
 	);
-	for (var [indexerId, caps] of fulfilled) {
+	for (const [indexerId, caps] of fulfilled) {
 		await updateIndexerCapsById(indexerId, caps);
 	}
 }
 
 export async function validateTorznabUrls() {
-	var { torznab } = getRuntimeConfig();
+	const { torznab } = getRuntimeConfig();
 	if (!torznab) return;
 
-	var urls: URL[] = torznab.map((str) => new URL(str));
-	for (var url of urls) {
+	const urls: URL[] = torznab.map((str) => new URL(str));
+	for (const url of urls) {
 		if (!url.pathname.endsWith("/api")) {
 			throw new CrossSeedError(
 				`Torznab url ${url} must have a path ending in /api`,
@@ -707,17 +707,17 @@ export async function validateTorznabUrls() {
 	await syncWithDb();
 	await updateCaps();
 
-	var indexersWithoutSearch = await db("indexer")
+	const indexersWithoutSearch = await db("indexer")
 		.where({ search_cap: false, active: true })
 		.select({ id: "id", url: "url" });
 
-	for (var indexer of indexersWithoutSearch) {
+	for (const indexer of indexersWithoutSearch) {
 		logger.warn(
 			`Ignoring indexer that doesn't support searching: ${indexer.url}`,
 		);
 	}
 
-	var indexersWithSearch = await getEnabledIndexers();
+	const indexersWithSearch = await getEnabledIndexers();
 
 	if (indexersWithSearch.length === 0) {
 		logger.warn("no working indexers available");
@@ -729,9 +729,9 @@ export async function validateTorznabUrls() {
  * specifically for a search, probably not applicable to a caps fetch.
  */
 async function onResponseNotOk(response: Response, indexerId: number) {
-	var retryAfterSeconds = Number(response.headers.get("Retry-After"));
+	const retryAfterSeconds = Number(response.headers.get("Retry-After"));
 
-	var retryAfter = !Number.isNaN(retryAfterSeconds)
+	const retryAfter = !Number.isNaN(retryAfterSeconds)
 		? Date.now() + ms(`${retryAfterSeconds} seconds`)
 		: response.status === 429
 			? Date.now() + ms("1 hour")
@@ -747,9 +747,9 @@ async function onResponseNotOk(response: Response, indexerId: number) {
 }
 
 async function makeRequest(request: TorznabRequest): Promise<Candidate[]> {
-	var { searchTimeout } = getRuntimeConfig();
-	var url = assembleUrl(request.baseUrl, request.apikey, request.query);
-	var abortSignal =
+	const { searchTimeout } = getRuntimeConfig();
+	const url = assembleUrl(request.baseUrl, request.apikey, request.query);
+	const abortSignal =
 		typeof searchTimeout === "number"
 			? AbortSignal.timeout(searchTimeout)
 			: undefined;
@@ -757,7 +757,7 @@ async function makeRequest(request: TorznabRequest): Promise<Candidate[]> {
 		label: Label.TORZNAB,
 		message: `Querying indexer ${request.indexerId} at ${request.baseUrl} with ${inspect(request.query)}`,
 	});
-	var response = await fetch(url, {
+	const response = await fetch(url, {
 		headers: { "User-Agent": USER_AGENT },
 		signal: abortSignal,
 	});
@@ -765,8 +765,8 @@ async function makeRequest(request: TorznabRequest): Promise<Candidate[]> {
 		await onResponseNotOk(response, request.indexerId);
 		throw new Error(`request failed with code: ${response.status}`);
 	}
-	var xml = await response.text();
-	var torznabResults: unknown = await xml2js.parseStringPromise(xml);
+	const xml = await response.text();
+	const torznabResults: unknown = await xml2js.parseStringPromise(xml);
 	return parseTorznabResults(torznabResults as TorznabResults);
 }
 
@@ -774,9 +774,9 @@ async function makeRequests(
 	indexers: Indexer[],
 	getQueriesForIndexer: (indexer: Indexer) => Promise<Query[]>,
 ): Promise<IndexerCandidates[]> {
-	var requests: TorznabRequest[] = [];
-	for (var indexer of indexers) {
-		var queries = await getQueriesForIndexer(indexer);
+	const requests: TorznabRequest[] = [];
+	for (const indexer of indexers) {
+		const queries = await getQueriesForIndexer(indexer);
 		requests.push(
 			...queries.map((query) => ({
 				indexerId: indexer.id,
@@ -787,16 +787,16 @@ async function makeRequests(
 		);
 	}
 
-	var outcomes = await Promise.allSettled<Candidate[]>(
+	const outcomes = await Promise.allSettled<Candidate[]>(
 		requests.map(makeRequest),
 	);
 
-	var { rejected, fulfilled } = collateOutcomes<number, Candidate[]>(
+	const { rejected, fulfilled } = collateOutcomes<number, Candidate[]>(
 		requests.map((request) => request.indexerId),
 		outcomes,
 	);
 
-	for (var [indexerId, reason] of rejected) {
+	for (const [indexerId, reason] of rejected) {
 		logger.warn({
 			label: Label.TORZNAB,
 			message: `Failed to reach ${indexers.find((i) => i.id === indexerId)!.url}`,
@@ -818,20 +818,20 @@ async function getAndLogIndexers(
 	progress: string,
 	options?: { configOverride: Partial<RuntimeConfig> },
 ): Promise<{ indexersToSearch: Indexer[]; parsedMedia?: ParsedMedia }> {
-	var {
+	const {
 		excludeRecentSearch,
 		excludeOlder,
 		seasonFromEpisodes,
 		searchLimit,
 	} = getRuntimeConfig(options?.configOverride);
-	var searcheeLog = getLogString(searchee, chalk.bold.white);
-	var mediaTypeLog = chalk.white(mediaType.toUpperCase());
+	const searcheeLog = getLogString(searchee, chalk.bold.white);
+	const mediaTypeLog = chalk.white(mediaType.toUpperCase());
 
-	var enabledIndexers = await getEnabledIndexers();
+	const enabledIndexers = await getEnabledIndexers();
 
 	// search history for name across all indexers
-	var name = searchee.title;
-	var timestampDataSql = await db("searchee")
+	const name = searchee.title;
+	const timestampDataSql = await db("searchee")
 		.join("timestamp", "searchee.id", "timestamp.searchee_id")
 		.join("indexer", "timestamp.indexer_id", "indexer.id")
 		.whereIn(
@@ -845,19 +845,19 @@ async function getAndLogIndexers(
 			lastSearched: "timestamp.last_searched",
 		});
 
-	var skipBefore = excludeOlder
+	const skipBefore = excludeOlder
 		? nMsAgo(excludeOlder)
 		: Number.NEGATIVE_INFINITY;
-	var skipAfter = excludeRecentSearch
+	const skipAfter = excludeRecentSearch
 		? nMsAgo(excludeRecentSearch)
 		: Number.POSITIVE_INFINITY;
-	var isEnsemble =
+	const isEnsemble =
 		seasonFromEpisodes && !searchee.infoHash && !searchee.path;
-	var newestFileAge = isEnsemble
+	const newestFileAge = isEnsemble
 		? await getSearcheeNewestFileAge(searchee as SearcheeWithoutInfoHash)
 		: Number.POSITIVE_INFINITY;
-	var timeFilteredIndexers = enabledIndexers.filter((indexer) => {
-		var entry = timestampDataSql.find(
+	const timeFilteredIndexers = enabledIndexers.filter((indexer) => {
+		const entry = timestampDataSql.find(
 			(entry) => entry.indexerId === indexer.id,
 		);
 		if (!entry) return true;
@@ -877,19 +877,19 @@ async function getAndLogIndexers(
 		return true;
 	});
 
-	var indexersToUse = timeFilteredIndexers.filter((indexer) => {
+	const indexersToUse = timeFilteredIndexers.filter((indexer) => {
 		return indexerDoesSupportMediaType(mediaType, indexer.categories);
 	});
 
 	// Invalidate cache if searchStr or ids is different
 	let shouldScanArr = true;
 	let parsedMedia: ParsedMedia | undefined;
-	var searchStr = await getSearchString(searchee);
+	const searchStr = await getSearchString(searchee);
 	if (cachedSearch.q === searchStr) {
 		shouldScanArr = false;
-		var res = await scanAllArrsForMedia(name, mediaType);
+		const res = await scanAllArrsForMedia(name, mediaType);
 		parsedMedia = res.orElse(undefined);
-		var ids = parsedMedia?.movie ?? parsedMedia?.series;
+		const ids = parsedMedia?.movie ?? parsedMedia?.series;
 		if (!arrIdsEqual(ids, cachedSearch.ids)) {
 			cachedSearch.indexerCandidates.length = 0;
 			cachedSearch.ids = ids;
@@ -899,7 +899,7 @@ async function getAndLogIndexers(
 		cachedSearch.indexerCandidates.length = 0;
 		cachedSearch.ids = undefined; // Don't prematurely get ids if skipping
 	}
-	var indexersToSearch = indexersToUse.filter((indexer) => {
+	const indexersToSearch = indexersToUse.filter((indexer) => {
 		if (
 			cachedSearch.indexerCandidates.some(
 				(candidates) => candidates.indexerId === indexer.id,
@@ -922,14 +922,14 @@ async function getAndLogIndexers(
 
 	if (!indexersToSearch.length && !cachedSearch.indexerCandidates.length) {
 		cachedSearch.q = null; // Won't scan arrs for multiple skips in a row
-		var filteringCauses = [
+		const filteringCauses = [
 			enabledIndexers.length > timeFilteredIndexers.length &&
 				"timestamps",
 			timeFilteredIndexers.length > indexersToUse.length && "category",
 			indexersToSearch.length + cachedSearch.indexerCandidates.length <
 				indexersToUse.length && "searchLimit",
 		].filter(isTruthy);
-		var reasonStr = filteringCauses.length
+		const reasonStr = filteringCauses.length
 			? ` (filtered by ${formatAsList(filteringCauses, { sort: true })})`
 			: "";
 		logger.info({
@@ -940,11 +940,11 @@ async function getAndLogIndexers(
 	}
 
 	if (shouldScanArr) {
-		var res = await scanAllArrsForMedia(name, mediaType);
+		const res = await scanAllArrsForMedia(name, mediaType);
 		parsedMedia = res.orElse(undefined);
 		cachedSearch.ids = parsedMedia?.movie ?? parsedMedia?.series;
 	}
-	var idsStr = cachedSearch.ids ? formatFoundIds(cachedSearch.ids) : "NONE";
+	const idsStr = cachedSearch.ids ? formatFoundIds(cachedSearch.ids) : "NONE";
 
 	logger.info({
 		label: searchee.label,
