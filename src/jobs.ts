@@ -17,7 +17,7 @@ export enum JobName {
 	CLEANUP = "cleanup",
 }
 
-var jobs: Job[] = [];
+const jobs: Job[] = [];
 
 class Job {
 	name: JobName;
@@ -58,7 +58,7 @@ class Job {
 }
 
 function createJobs(): void {
-	var { action, rssCadence, searchCadence, torznab } = getRuntimeConfig();
+	const { action, rssCadence, searchCadence, torznab } = getRuntimeConfig();
 	if (rssCadence) {
 		jobs.push(new Job(JobName.RSS, rssCadence, scanRssFeeds));
 	}
@@ -85,12 +85,12 @@ function logNextRun(
 	cadence: number,
 	lastRun: number | undefined | null,
 ) {
-	var now = Date.now();
+	const now = Date.now();
 
-	var eligibilityTs = lastRun ? lastRun + cadence : now;
+	const eligibilityTs = lastRun ? lastRun + cadence : now;
 
-	var lastRunStr = lastRun ? `${ms(now - lastRun)} ago` : "never";
-	var nextRunStr =
+	const lastRunStr = lastRun ? `${ms(now - lastRun)} ago` : "never";
+	const nextRunStr =
 		now >= eligibilityTs ? "now" : `in ${ms(eligibilityTs - now)}`;
 
 	logger.info({
@@ -110,12 +110,12 @@ export async function jobsLoop(): Promise<void> {
 	createJobs();
 
 	async function loop(isFirstRun = false) {
-		var now = Date.now();
-		for (var job of jobs) {
-			var lastRun = await getJobLastRun(job.name);
+		const now = Date.now();
+		for (const job of jobs) {
+			const lastRun = await getJobLastRun(job.name);
 
 			// if it's never been run, you are eligible immediately
-			var eligibilityTs = lastRun ? lastRun + job.cadence : now;
+			const eligibilityTs = lastRun ? lastRun + job.cadence : now;
 			if (isFirstRun) logNextRun(job.name, job.cadence, lastRun);
 
 			if (job.runAheadOfSchedule || now >= eligibilityTs) {
@@ -123,14 +123,14 @@ export async function jobsLoop(): Promise<void> {
 					.then(async (didRun) => {
 						if (didRun) {
 							// upon success, update the log
-							var last_run = job.runAheadOfSchedule
+							const last_run = job.runAheadOfSchedule
 								? now + job.cadence
 								: now;
 							await db("job_log")
 								.insert({ name: job.name, last_run })
 								.onConflict("name")
 								.merge();
-							var cadence = job.runAheadOfSchedule
+							const cadence = job.runAheadOfSchedule
 								? job.cadence * 2
 								: job.cadence;
 							logNextRun(job.name, cadence, now);
