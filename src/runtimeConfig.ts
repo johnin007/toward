@@ -41,7 +41,7 @@ export interface RuntimeConfig {
 	radarr: string[];
 }
 
-let runtimeConfig: RuntimeConfig;
+const runtimeConfig: RuntimeConfig;
 
 export function setRuntimeConfig(configObj: RuntimeConfig): void {
 	runtimeConfig = configObj;
