@@ -81,7 +81,7 @@ function ensure(bool: unknown, fieldName: string) {
 }
 
 function sha1(buf: Buffer): string {
-	let hash = createHash("sha1");
+	const hash = createHash("sha1");
 	hash.update(buf);
 	return hash.digest("hex");
 }
@@ -124,7 +124,7 @@ export class Metafile {
 
 		if (!raw.info.files) {
 			// length exists if files doesn't exist
-			let length = raw.info.length!;
+			const length = raw.info.length!;
 			this.files = [
 				{
 					name: this.name,
@@ -137,12 +137,12 @@ export class Metafile {
 		} else {
 			this.files = raw.info.files
 				.map((file) => {
-					let rawPathSegments: Buffer[] = fallback(
+					const rawPathSegments: Buffer[] = fallback(
 						file["path.utf-8"],
 						file.path,
 					)!;
-					let pathSegments = rawPathSegments.map((buf) => {
-						let seg = buf.toString();
+					const pathSegments = rawPathSegments.map((buf) => {
+						const seg = buf.toString();
 						// convention for zero-length path segments is to treat them as underscores
 						return seg === "" ? "_" : seg;
 					});
@@ -159,7 +159,7 @@ export class Metafile {
 		}
 		this.title = parseTitle(this.name, this.files) ?? this.name;
 
-		let announceList = raw["announce-list"];
+		const announceList = raw["announce-list"];
 		this.trackers =
 			Array.isArray(announceList) && announceList.length > 0
 				? announceList.map((tier) => sanitizeTrackerUrls(tier)).flat()
