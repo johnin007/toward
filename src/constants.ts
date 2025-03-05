@@ -1,50 +1,50 @@
 import { createRequire } from "module";
 
-const require = createRequire(import.meta.url);
-const packageDotJson = require("../package.json");
+let require = createRequire(import.meta.url);
+let packageDotJson = require("../package.json");
 
-export const PROGRAM_NAME = packageDotJson.name;
-export const PROGRAM_VERSION = packageDotJson.version;
-export const USER_AGENT = `CrossSeed/${PROGRAM_VERSION}`;
-export const TORRENT_TAG = "cross-seed";
-export const TORRENT_CATEGORY_SUFFIX = `.cross-seed`;
-export const NEWLINE_INDENT = "\n\t\t\t\t";
+export let PROGRAM_NAME = packageDotJson.name;
+export let PROGRAM_VERSION = packageDotJson.version;
+export let USER_AGENT = `CrossSeed/${PROGRAM_VERSION}`;
+export let TORRENT_TAG = "cross-seed";
+export let TORRENT_CATEGORY_SUFFIX = `.cross-seed`;
+export let NEWLINE_INDENT = "\n\t\t\t\t";
 
-export const EP_REGEX =
+export let EP_REGEX =
 	/^(?<title>.+?)[_.\s-]+(?:(?<season>S\d+)?[_.\s-]{0,3}(?!(?:19|20)\d{2})(?<episode>(?:E|(?<=S\d+[_\s-]{1,3}))\d+(?:[\s-]?(?!(?:19|20)\d{2})E?\d+)?(?![pix]))(?!\d+[pix])|(?<date>(?<year>(?:19|20)\d{2})[_.\s-](?<month>\d{2})[_.\s-](?<day>\d{2})))/i;
-export const IS_MULTI_EP_REGEX = /E\d+(?:[-.]?S\d+E\d|[-.]?E\d|[-.]\d)/i;
-export const SEASON_REGEX =
+export let IS_MULTI_EP_REGEX = /E\d+(?:[-.]?S\d+E\d|[-.]?E\d|[-.]\d)/i;
+export let SEASON_REGEX =
 	/^(?<title>.+?)[[_.\s-]+(?<season>S(?:eason)?\s*\d+)(?=\b(?![_.\s~-]*E\d+))/i;
-export const MOVIE_REGEX =
+export let MOVIE_REGEX =
 	/^(?<title>.+?)-?[_.\s][[(]?(?<year>(?:18|19|20)\d{2})[)\]]?(?![pix])/i;
-export const ANIME_REGEX =
+export let ANIME_REGEX =
 	/^(?:\[(?<group>.*?)\][_\s-]?)?(?:\[?(?<title>.+?)[_\s-]?(?:\(?(?:\d{1,2}(?:st|nd|rd|th))?\s?Season)?[_\s-]?\]?)(?:[([~/|-]\s?(?!\d{1,4})(?<altTitle>.+?)[)\]~-]?\s?)?[_\s-]?(?:[[(]?(?<year>(?:19|20)\d{2})[)\]]?)?[[_\s-](?:S\d{1,2})?[_\s-]{0,3}(?:#|EP?|(?:SP))?[_\s-]{0,3}(?!\d+[a-uw-z])(?<release>\d{1,4})(?!\.[0-46-9])/i;
-export const RELEASE_GROUP_REGEX =
+export let RELEASE_GROUP_REGEX =
 	/(?<=-)(?:\W|\b)(?!(?:\d{3,4}[ip]))(?!\d+\b)(?:\W|\b)(?<group>[\w .]+?)(?:\[.+\])?(?:\))?(?:\s\[.+\])?$/i;
-export const ANIME_GROUP_REGEX = /^\s*\[(?<group>.+?)\]/i;
-export const RESOLUTION_REGEX = /\b(?<res>\d{3,4}[pix](?:\d{3,4}[pi]?)?)\b/i;
-export const RES_STRICT_REGEX = /(?<res>(?:2160|1080|720)[pi])/;
-export const YEARS_REGEX = /(?<year>(?:19|20)\d{2})(?![pix])/gi;
-export const REPACK_PROPER_REGEX =
+export let ANIME_GROUP_REGEX = /^\s*\[(?<group>.+?)\]/i;
+export let RESOLUTION_REGEX = /\b(?<res>\d{3,4}[pix](?:\d{3,4}[pi]?)?)\b/i;
+export let RES_STRICT_REGEX = /(?<res>(?:2160|1080|720)[pi])/;
+export let YEARS_REGEX = /(?<year>(?:19|20)\d{2})(?![pix])/gi;
+export let REPACK_PROPER_REGEX =
 	/(?:\b(?<type>(?:REPACK|PROPER|\dv\d)\d?))\b/i;
-export const ARR_PROPER_REGEX = /(?:\b(?<arrtype>(?:Proper|\dv\d)))\b/;
-export const SCENE_TITLE_REGEX = /^(?:[a-z0-9]{3,5}-)?(?<title>.*)/;
-export const ARR_DIR_REGEX =
+export let ARR_PROPER_REGEX = /(?:\b(?<arrtype>(?:Proper|\dv\d)))\b/;
+export let SCENE_TITLE_REGEX = /^(?:[a-z0-9]{3,5}-)?(?<title>.*)/;
+export let ARR_DIR_REGEX =
 	/^(?<title>(?!.*(?:(\d{3,4}[ipx])|([xh.]+26[4-6])|(dvd)|(mpeg)|(xvid)|(?:(he)|a)vc))[\p{L}\s:\w'’!();.,&–+-]+(?:\(\d{4}\))?)(?<id>\s[{[](?:tm|tv|im)db(?:id)?-\w+?[}\]])?$/iu;
-export const SONARR_SUBFOLDERS_REGEX =
+export let SONARR_SUBFOLDERS_REGEX =
 	/^(?:S(?:eason )?(?<seasonNum>\d{1,4}))$/i;
-export const NON_UNICODE_ALPHANUM_REGEX = /[^\p{L}\p{N}]+/giu;
-export const CALIBRE_INDEXNUM_REGEX = /\s?\(\d+\)$/;
-export const SAVED_TORRENTS_INFO_REGEX =
+export let NON_UNICODE_ALPHANUM_REGEX = /[^\p{L}\p{N}]+/giu;
+export let CALIBRE_INDEXNUM_REGEX = /\s?\(\d+\)$/;
+export let SAVED_TORRENTS_INFO_REGEX =
 	/^\[(?<mediaType>.+?)\]\[(?<tracker>.+?)\](?<name>.+?)(?:\[[^\]]*?\])?\.torrent$/i;
-export const BAD_GROUP_PARSE_REGEX =
+export let BAD_GROUP_PARSE_REGEX =
 	/^(?<badmatch>(?:dl|DDP?|aac|eac3|atmos|dts|ma|hd|[heav.c]{3.5}|[xh.]{1,2}[2456]|[0-9]+[ip]?|dxva|full|blu|ray|s(?:eason)?\W\d+|\W){3,})$/i;
-export const JSON_VALUES_REGEX = /".+?"\s*:\s*"(?<value>.+?)"\s*(?:,|})/g;
-export const ABS_WIN_PATH_REGEX = /^[a-z]:|^\\/i;
-export const AKA_REGEX = /(?:[_.\s-]+|\b)a[_.\s-]?k[_.\s-]?a(?:[_.\s-]+|\b)/i;
+export let JSON_VALUES_REGEX = /".+?"\s*:\s*"(?<value>.+?)"\s*(?:,|})/g;
+export let ABS_WIN_PATH_REGEX = /^[a-z]:|^\\/i;
+export let AKA_REGEX = /(?:[_.\s-]+|\b)a[_.\s-]?k[_.\s-]?a(?:[_.\s-]+|\b)/i;
 
 // Needs to be handled through helper functions since there are variations
-const SOURCE_REGEXES = {
+let SOURCE_REGEXES = {
 	AMZN: /\b(amzn|amazon(hd)?)\b[ ._-]web[ ._-]?(dl|rip)?\b/i,
 	DSNP: /\b(dsnp|dsny|disney)\b/i,
 	NF: /\b(nf|netflix(u?hd)?)\b/i,
@@ -56,24 +56,24 @@ const SOURCE_REGEXES = {
 };
 
 export function parseSource(title: string): string | null {
-	for (const [source, regex] of Object.entries(SOURCE_REGEXES)) {
+	for (let [source, regex] of Object.entries(SOURCE_REGEXES)) {
 		if (regex.test(title)) return source;
 	}
 	return null;
 }
 
 export function sourceRegexRemove(title: string): string {
-	const originalLength = title.length;
-	for (const regex of Object.values(SOURCE_REGEXES)) {
-		const newTitle = title.replace(regex, "");
+	let originalLength = title.length;
+	for (let regex of Object.values(SOURCE_REGEXES)) {
+		let newTitle = title.replace(regex, "");
 		if (newTitle.length !== originalLength) return newTitle;
 	}
 	return title;
 }
 
-export const VIDEO_EXTENSIONS = [".mkv", ".mp4", ".avi", ".ts"];
-export const VIDEO_DISC_EXTENSIONS = [".m2ts", ".ifo", ".vob", ".bup"];
-export const AUDIO_EXTENSIONS = [
+export let VIDEO_EXTENSIONS = [".mkv", ".mp4", ".avi", ".ts"];
+export let VIDEO_DISC_EXTENSIONS = [".m2ts", ".ifo", ".vob", ".bup"];
+export let AUDIO_EXTENSIONS = [
 	".wav",
 	".aiff",
 	".alac",
@@ -89,7 +89,7 @@ export const AUDIO_EXTENSIONS = [
 	".aa",
 	".aax",
 ];
-export const BOOK_EXTENSIONS = [
+export let BOOK_EXTENSIONS = [
 	".epub",
 	".mobi",
 	".azw",
@@ -105,16 +105,16 @@ export const BOOK_EXTENSIONS = [
 	".cbt",
 	".cba",
 ];
-export const ALL_EXTENSIONS = [
+export let ALL_EXTENSIONS = [
 	...VIDEO_EXTENSIONS,
 	...AUDIO_EXTENSIONS,
 	...BOOK_EXTENSIONS,
 	...VIDEO_DISC_EXTENSIONS,
 ];
 
-export const TORRENT_CACHE_FOLDER = "torrent_cache";
-export const UNKNOWN_TRACKER = "UnknownTracker";
-export const LEVENSHTEIN_DIVISOR = 3;
+export let TORRENT_CACHE_FOLDER = "torrent_cache";
+export let UNKNOWN_TRACKER = "UnknownTracker";
+export let LEVENSHTEIN_DIVISOR = 3;
 
 export enum MediaType {
 	EPISODE = "episode",
@@ -225,12 +225,12 @@ export enum BlocklistType {
 	SIZE_ABOVE = "sizeAbove",
 	LEGACY = "legacy",
 }
-const PARSE_BLOCKLIST_REGEX = /^(?<blocklistType>.+?):(?<blocklistValue>.*)$/;
+let PARSE_BLOCKLIST_REGEX = /^(?<blocklistType>.+?):(?<blocklistValue>.*)$/;
 export function parseBlocklistEntry(blocklistEntry: string): {
 	blocklistType: BlocklistType;
 	blocklistValue: string;
 } {
-	const match = blocklistEntry.match(PARSE_BLOCKLIST_REGEX);
+	let match = blocklistEntry.match(PARSE_BLOCKLIST_REGEX);
 	if (match?.groups) {
 		return {
 			blocklistType: match.groups.blocklistType as BlocklistType,
@@ -243,7 +243,7 @@ export function parseBlocklistEntry(blocklistEntry: string): {
 	};
 }
 
-export const IGNORED_FOLDERS_SUBSTRINGS = [
+export let IGNORED_FOLDERS_SUBSTRINGS = [
 	"sample",
 	"proof",
 	"bdmv",
