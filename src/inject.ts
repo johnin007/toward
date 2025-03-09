@@ -88,15 +88,15 @@ function getTorrentFilePathLog(torrentFilePath: string): string {
 }
 
 async function deleteTorrentFileIfSafe(torrentFilePath: string): Promise<void> {
-	var { tracker, name, mediaType } = parseMetadataFromFilename(
+	const { tracker, name, mediaType } = parseMetadataFromFilename(
 		basename(torrentFilePath),
 	);
 
 	// we are confident cross-seed created the torrent,
 	// or it is intended for use with cross-seed
-	var isSafeToDelete = tracker && name && mediaType;
+	const isSafeToDelete = tracker && name && mediaType;
 	if (!isSafeToDelete) return;
-	var filePathLog = getTorrentFilePathLog(torrentFilePath);
+	const filePathLog = getTorrentFilePathLog(torrentFilePath);
 	logger.verbose({
 		label: Label.INJECT,
 		message: `Deleting ${filePathLog}`,
@@ -133,7 +133,7 @@ async function whichSearcheesMatchTorrent(
 	meta: Metafile,
 	searchees: SearcheeWithLabel[],
 ): Promise<{ matches: AllMatches; foundBlocked: boolean }> {
-	var isSimilar = (searchee: SearcheeWithLabel, meta: Metafile) =>
+	const isSimilar = (searchee: SearcheeWithLabel, meta: Metafile) =>
 		areMediaTitlesSimilar(searchee.title, meta.title) ||
 		areMediaTitlesSimilar(searchee.title, meta.name) ||
 		areMediaTitlesSimilar(searchee.name, meta.name) ||
@@ -144,9 +144,9 @@ async function whichSearcheesMatchTorrent(
 			),
 		);
 	let foundBlocked = false;
-	var matches: AllMatches = [];
-	for (var searchee of searchees) {
-		var { decision } = await assessCandidate(meta, searchee, new Set());
+	const matches: AllMatches = [];
+	for (const searchee of searchees) {
+		const { decision } = await assessCandidate(meta, searchee, new Set());
 		if (decision === Decision.BLOCKED_RELEASE) {
 			if (isSimilar(searchee, meta)) foundBlocked = true;
 			continue;
@@ -200,20 +200,20 @@ async function injectInitialAction(
 	linkedNewFiles: boolean;
 }> {
 	let client: TorrentClient | undefined;
-	var clientMatches: AllMatches = [];
+	const clientMatches: AllMatches = [];
 	let injectionResult = InjectionResult.FAILURE;
 	let matchedSearchee: SearcheeWithLabel | undefined;
 	let matchedDecision: DecisionAnyMatch | undefined;
 	let linkedNewFiles = false;
-	for (var { searchee, decision } of matches) {
-		var res = await performActionWithoutMutex(
+	for (const { searchee, decision } of matches) {
+		const res = await performActionWithoutMutex(
 			meta,
 			decision,
 			searchee,
 			tracker,
 			client,
 		);
-		var actionResult = res.actionResult;
+		const actionResult = res.actionResult;
 		if (actionResult === InjectionResult.FAILURE) {
 			if (res.linkedNewFiles) break; // Since we couldn't unlink, process with the next job
 			continue;
@@ -273,10 +273,10 @@ async function injectFromStalledTorrent({
 	filePathLog,
 }: InjectionAftermath): Promise<void> {
 	let linkedNewFiles = false;
-	var stalledDecision = Decision.MATCH_PARTIAL; // Should always be considered partial
-	for (var { searchee } of clientMatches) {
-		var searcheeLog = getLogString(searchee, chalk.bold.white);
-		var res = await performActionWithoutMutex(
+	const stalledDecision = Decision.MATCH_PARTIAL; // Should always be considered partial
+	for (const { searchee } of clientMatches) {
+		const searcheeLog = getLogString(searchee, chalk.bold.white);
+		const res = await performActionWithoutMutex(
 			meta,
 			stalledDecision,
 			searchee,
@@ -326,9 +326,9 @@ async function injectFromStalledTorrent({
 async function injectionTorrentNotComplete(
 	injectionAftermath: InjectionAftermath,
 ) {
-	var { progress, torrentFilePath, injectionResult, summary, filePathLog } =
+	const { progress, torrentFilePath, injectionResult, summary, filePathLog } =
 		injectionAftermath;
-	var { linkDirs } = getRuntimeConfig();
+	const { linkDirs } = getRuntimeConfig();
 	if (
 		!linkDirs.length ||
 		(await stat(torrentFilePath)).mtimeMs >= Date.now() - ms("1 day")
@@ -357,13 +357,13 @@ async function injectionAlreadyExists({
 	meta,
 	filePathLog,
 }: InjectionAftermath) {
-	var isChecking = (await client!.isTorrentChecking(meta.infoHash)).orElse(
+	const isChecking = (await client!.isTorrentChecking(meta.infoHash)).orElse(
 		false,
 	);
 	let isComplete = (await client!.isTorrentComplete(meta.infoHash)).orElse(
 		false,
 	);
-	var decision =
+	const decision =
 		clientMatches.find((m) => m.decision === Decision.MATCH)?.decision ??
 		clientMatches.find((m) => m.decision === Decision.MATCH_SIZE_ONLY)
 			?.decision ??
@@ -382,7 +382,7 @@ async function injectionAlreadyExists({
 			checkOnce: false,
 		});
 	} else if (!isComplete && decision !== Decision.MATCH_PARTIAL) {
-		var finalCheckTime =
+		const finalCheckTime =
 			(await stat(torrentFilePath)).mtimeMs + ms("1 day");
 		logger.info({
 			label: Label.INJECT,
@@ -457,7 +457,7 @@ async function loadMetafile(
 	progress: string,
 	summary: InjectSummary,
 ): Promise<Result<{ meta: Metafile; tracker: string }, "FAILED_TO_PARSE">> {
-	var filePathLog = getTorrentFilePathLog(torrentFilePath);
+	const filePathLog = getTorrentFilePathLog(torrentFilePath);
 	let meta: Metafile;
 	try {
 		meta = await parseTorrentFromFilename(torrentFilePath);
@@ -470,11 +470,11 @@ async function loadMetafile(
 		return resultOfErr("FAILED_TO_PARSE");
 	}
 
-	var { tracker: trackerFromFilename } = parseMetadataFromFilename(
+	const { tracker: trackerFromFilename } = parseMetadataFromFilename(
 		basename(torrentFilePath),
 	);
 	summary.FOUND_BAD_FORMAT ||= !trackerFromFilename;
-	var tracker = trackerFromFilename ?? UNKNOWN_TRACKER;
+	const tracker = trackerFromFilename ?? UNKNOWN_TRACKER;
 	return resultOf({ meta, tracker });
 }
 
@@ -484,18 +484,18 @@ async function injectSavedTorrent(
 	summary: InjectSummary,
 	searchees: SearcheeWithLabel[],
 ) {
-	var metafileResult = await loadMetafile(
+	const metafileResult = await loadMetafile(
 		torrentFilePath,
 		progress,
 		summary,
 	);
 	if (metafileResult.isErr()) return;
-	var { meta, tracker } = metafileResult.unwrap();
+	const { meta, tracker } = metafileResult.unwrap();
 
-	var filePathLog = getTorrentFilePathLog(torrentFilePath);
-	var metaLog = getLogString(meta, chalk.bold.white);
+	const filePathLog = getTorrentFilePathLog(torrentFilePath);
+	const metaLog = getLogString(meta, chalk.bold.white);
 
-	var { matches, foundBlocked } = await whichSearcheesMatchTorrent(
+	const { matches, foundBlocked } = await whichSearcheesMatchTorrent(
 		meta,
 		searchees,
 	);
@@ -518,7 +518,7 @@ async function injectSavedTorrent(
 		return;
 	}
 
-	var {
+	const {
 		client,
 		clientMatches,
 		injectionResult,
@@ -527,7 +527,7 @@ async function injectSavedTorrent(
 		linkedNewFiles,
 	} = await injectInitialAction(meta, matches, tracker);
 
-	var injectionAftermath: InjectionAftermath = {
+	const injectionAftermath: InjectionAftermath = {
 		progress,
 		torrentFilePath,
 		client,
@@ -563,12 +563,12 @@ function logInjectSummary(
 	flatLinking: boolean,
 	injectDir: string | undefined,
 ) {
-	var incompleteMsg = `${chalk.bold.yellow(summary.ALREADY_EXISTS)} existed in client${
+	const incompleteMsg = `${chalk.bold.yellow(summary.ALREADY_EXISTS)} existed in client${
 		summary.INCOMPLETE_CANDIDATES
 			? chalk.dim(` (${summary.INCOMPLETE_CANDIDATES} were incomplete)`)
 			: ""
 	}`;
-	var resultMsg = formatAsList(
+	const resultMsg = formatAsList(
 		[
 			`Injected ${chalk.bold.green(summary.INJECTED)}/${chalk.bold.white(summary.TOTAL)} torrents`,
 			summary.FULL_MATCHES &&
@@ -627,11 +627,11 @@ function createSummary(total: number): InjectSummary {
 }
 
 export async function injectSavedTorrents(): Promise<void> {
-	var { flatLinking, injectDir, outputDir } = getRuntimeConfig();
-	var targetDir = injectDir ?? outputDir;
-	var targetDirLog = chalk.bold.magenta(targetDir);
+	const { flatLinking, injectDir, outputDir } = getRuntimeConfig();
+	const targetDir = injectDir ?? outputDir;
+	const targetDirLog = chalk.bold.magenta(targetDir);
 
-	var torrentFilePaths = await findAllTorrentFilesInDir(targetDir);
+	const torrentFilePaths = await findAllTorrentFilesInDir(targetDir);
 	if (torrentFilePaths.length === 0) {
 		logger.info({
 			label: Label.INJECT,
@@ -643,12 +643,12 @@ export async function injectSavedTorrents(): Promise<void> {
 		label: Label.INJECT,
 		message: `Found ${chalk.bold.white(torrentFilePaths.length)} torrent file(s) to inject in ${targetDirLog}`,
 	});
-	var summary = createSummary(torrentFilePaths.length);
-	var { realSearchees, ensembleSearchees } = await withMutex(
+	const summary = createSummary(torrentFilePaths.length);
+	const { realSearchees, ensembleSearchees } = await withMutex(
 		Mutex.CREATE_ALL_SEARCHEES,
 		async () => {
-			var realSearchees = await findAllSearchees(Label.INJECT);
-			var ensembleSearchees = await createEnsembleSearchees(
+			const realSearchees = await findAllSearchees(Label.INJECT);
+			const ensembleSearchees = await createEnsembleSearchees(
 				realSearchees,
 				{
 					useFilters: false,
@@ -658,9 +658,9 @@ export async function injectSavedTorrents(): Promise<void> {
 		},
 		{ useQueue: true },
 	);
-	var searchees = [...realSearchees, ...ensembleSearchees];
-	for (var [i, torrentFilePath] of torrentFilePaths.entries()) {
-		var progress = chalk.blue(`(${i + 1}/${torrentFilePaths.length})`);
+	const searchees = [...realSearchees, ...ensembleSearchees];
+	for (const [i, torrentFilePath] of torrentFilePaths.entries()) {
+		const progress = chalk.blue(`(${i + 1}/${torrentFilePaths.length})`);
 		await withMutex(
 			Mutex.CLIENT_INJECTION,
 			async () => {
@@ -678,8 +678,8 @@ export async function injectSavedTorrents(): Promise<void> {
 }
 
 export async function restoreFromTorrentCache(): Promise<void> {
-	var { outputDir } = getRuntimeConfig();
-	var torrentFilePaths = await findAllTorrentFilesInDir(
+	const { outputDir } = getRuntimeConfig();
+	const torrentFilePaths = await findAllTorrentFilesInDir(
 		path.join(appDir(), TORRENT_CACHE_FOLDER),
 	);
 	if (torrentFilePaths.length === 0) {
@@ -690,8 +690,8 @@ export async function restoreFromTorrentCache(): Promise<void> {
 		`Found ${chalk.bold.white(torrentFilePaths.length)} torrent file(s) to restore from cache, copying to outputDir...`,
 	);
 	let existed = 0;
-	for (var [i, torrentFilePath] of torrentFilePaths.entries()) {
-		var dest = path.join(
+	for (const [i, torrentFilePath] of torrentFilePaths.entries()) {
+		const dest = path.join(
 			outputDir,
 			`[${MediaType.OTHER}][${UNKNOWN_TRACKER}]${basename(torrentFilePath)}`,
 		);
