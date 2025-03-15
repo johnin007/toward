@@ -84,7 +84,7 @@ export interface Indexer {
 	limits: IndexerLimits;
 }
 
-const allFields = {
+let allFields = {
 	id: "id",
 	url: "url",
 	apikey: "apikey",
@@ -98,9 +98,9 @@ const allFields = {
 	movieIdCaps: "movie_id_caps",
 	catCaps: "cat_caps",
 	limitsCaps: "limits_caps",
-} as const;
+} as let;
 
-export const ALL_CAPS: Caps = {
+export let ALL_CAPS: Caps = {
 	limits: {
 		default: 100,
 		max: 100,
@@ -132,7 +132,7 @@ export const ALL_CAPS: Caps = {
 };
 
 function deserialize(dbIndexer: DbIndexer): Indexer {
-	const { tvIdCaps, movieIdCaps, catCaps, limitsCaps, ...rest } = dbIndexer;
+	let { tvIdCaps, movieIdCaps, catCaps, limitsCaps, ...rest } = dbIndexer;
 	return {
 		...rest,
 		tvIdCaps: JSON.parse(tvIdCaps),
@@ -143,14 +143,14 @@ function deserialize(dbIndexer: DbIndexer): Indexer {
 }
 
 export async function getAllIndexers(): Promise<Indexer[]> {
-	const rawIndexers = await db("indexer")
+	let rawIndexers = await db("indexer")
 		.where({ active: true })
 		.select(allFields);
 	return rawIndexers.map(deserialize);
 }
 
 export async function getEnabledIndexers(): Promise<Indexer[]> {
-	const rawIndexers = await db("indexer")
+	let rawIndexers = await db("indexer")
 		.whereNot({
 			search_cap: null,
 			tv_search_cap: null,
@@ -196,10 +196,10 @@ export async function updateSearchTimestamps(
 	name: string,
 	indexerIds: number[],
 ) {
-	for (const indexerId of indexerIds) {
+	for (let indexerId of indexerIds) {
 		await db.transaction(async (trx) => {
-			const now = Date.now();
-			const { id: searchee_id } = await trx("searchee")
+			let now = Date.now();
+			let { id: searchee_id } = await trx("searchee")
 				.where({ name })
 				.select("id")
 				.first();
