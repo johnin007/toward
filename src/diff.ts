@@ -15,9 +15,9 @@ function diff(thing1, thing2) {
 }
 
 export async function diffCmd(first: string, second: string): Promise<void> {
-	let f1 = (await parseTorrentFromFilename(first)).files;
-	let f2 = (await parseTorrentFromFilename(second)).files;
-	let sortBy =
+	const f1 = (await parseTorrentFromFilename(first)).files;
+	const f2 = (await parseTorrentFromFilename(second)).files;
+	const sortBy =
 		f1.length === 1
 			? (a, b) => b.length - a.length
 			: f2.length === 1
