@@ -27,18 +27,18 @@ describe("humanReadableSize", () => {
 
 describe("getMediaType", () => {
 	it("returns MediaType.EPISODE if the title matches EP_REGEX", () => {
-		const searchee = searcheeFactory({ title: "My.Show.S01E01" });
+		let searchee = searcheeFactory({ title: "My.Show.S01E01" });
 
 		expect(getMediaType(searchee)).toBe(MediaType.EPISODE);
 	});
 
 	it("returns MediaType.SEASON if the title matches SEASON_REGEX", () => {
-		const s1 = searcheeFactory({ title: "My.Show.S01" });
+		let s1 = searcheeFactory({ title: "My.Show.S01" });
 		expect(getMediaType(s1)).toBe(MediaType.SEASON);
 		expect(extractInt(s1.title.match(SEASON_REGEX)!.groups!.season)).toBe(
 			1,
 		);
-		const s2 = searcheeFactory({ title: "My.Show.Season 2" });
+		let s2 = searcheeFactory({ title: "My.Show.Season 2" });
 		expect(getMediaType(s2)).toBe(MediaType.SEASON);
 		expect(extractInt(s2.title.match(SEASON_REGEX)!.groups!.season)).toBe(
 			2,
@@ -47,8 +47,8 @@ describe("getMediaType", () => {
 
 	describe("when testing for video files by extension", () => {
 		it("returns MediaType.MOVIE if the title matches MOVIE_REGEX", () => {
-			const file = fileFactory({ name: "media.mp4" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.mp4" });
+			let searchee = searcheeFactory({
 				title: "My.Movie.2021",
 				files: [file],
 			});
@@ -57,8 +57,8 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.ANIME if the title matches ANIME_REGEX", () => {
-			const file = fileFactory({ name: "media.mp4" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.mp4" });
+			let searchee = searcheeFactory({
 				title: "[GRP] My.Anime - 001",
 				files: [file],
 			});
@@ -67,8 +67,8 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.VIDEO if the title does not match MOVIE_REGEX or ANIME_REGEX", () => {
-			const file = fileFactory({ name: "media.mp4" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.mp4" });
+			let searchee = searcheeFactory({
 				title: "My.Video",
 				files: [file],
 			});
@@ -79,8 +79,8 @@ describe("getMediaType", () => {
 
 	describe("when testing RAR archives", () => {
 		it("returns MediaType.MOVIE if the title matches MOVIE_REGEX", () => {
-			const file = fileFactory({ name: "media.rar" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.rar" });
+			let searchee = searcheeFactory({
 				title: "My.Movie.2021",
 				files: [file],
 			});
@@ -89,9 +89,9 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.AUDIO if one of the other files has an audio extension", () => {
-			const archive = fileFactory({ name: "media.rar" });
-			const audio = fileFactory({ name: "media.mp3" });
-			const searchee = searcheeFactory({
+			let archive = fileFactory({ name: "media.rar" });
+			let audio = fileFactory({ name: "media.mp3" });
+			let searchee = searcheeFactory({
 				title: "My.Video",
 				files: [archive, audio],
 			});
@@ -100,9 +100,9 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.BOOK if one of the other files has a book extension", () => {
-			const archive = fileFactory({ name: "media.rar" });
-			const book = fileFactory({ name: "media.epub" });
-			const searchee = searcheeFactory({
+			let archive = fileFactory({ name: "media.rar" });
+			let book = fileFactory({ name: "media.epub" });
+			let searchee = searcheeFactory({
 				title: "My.Video",
 				files: [archive, book],
 			});
@@ -111,8 +111,8 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.OTHER if the title does not match MOVIE_REGEX", () => {
-			const file = fileFactory({ name: "media.rar" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.rar" });
+			let searchee = searcheeFactory({
 				title: "My.Other",
 				files: [file],
 			});
@@ -123,8 +123,8 @@ describe("getMediaType", () => {
 
 	describe("when testing fallback behaviour", () => {
 		it("returns MediaType.AUDIO if the file has an audio extension", () => {
-			const file = fileFactory({ name: "media.mp3" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.mp3" });
+			let searchee = searcheeFactory({
 				title: "unknown",
 				files: [file],
 			});
@@ -133,8 +133,8 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.BOOK if the file has a book extension", () => {
-			const file = fileFactory({ name: "media.epub" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.epub" });
+			let searchee = searcheeFactory({
 				title: "unknown",
 				files: [file],
 			});
@@ -143,8 +143,8 @@ describe("getMediaType", () => {
 		});
 
 		it("returns MediaType.OTHER if the media type cannot be determined", () => {
-			const file = fileFactory({ name: "media.xyz" });
-			const searchee = searcheeFactory({
+			let file = fileFactory({ name: "media.xyz" });
+			let searchee = searcheeFactory({
 				title: "unknown",
 				files: [file],
 			});
