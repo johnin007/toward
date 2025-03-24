@@ -23,7 +23,7 @@ import RTorrent from "./RTorrent.js";
 import Transmission from "./Transmission.js";
 import { hasExt } from "../utils.js";
 
-var activeClients: TorrentClient[] = [];
+const activeClients: TorrentClient[] = [];
 
 type TorrentClientType =
 	| Label.QBITTORRENT
@@ -99,12 +99,12 @@ export interface TorrentClient {
 	validateConfig: () => Promise<void>;
 }
 
-var PARSE_CLIENT_REGEX =
+const PARSE_CLIENT_REGEX =
 	/^(?<clientType>.+?):(?:(?<readonly>readonly):)?(?<url>.*)$/;
 export function parseClientEntry(
 	clientEntry: string,
 ): { clientType: TorrentClientType; readonly: boolean; url: string } | null {
-	var match = clientEntry.match(PARSE_CLIENT_REGEX);
+	const match = clientEntry.match(PARSE_CLIENT_REGEX);
 	if (!match?.groups) return null;
 	return {
 		clientType: match.groups.clientType as TorrentClientType,
@@ -114,9 +114,9 @@ export function parseClientEntry(
 }
 
 export function instantiateDownloadClients() {
-	var { torrentClients } = getRuntimeConfig();
-	for (var [priority, clientEntryRaw] of torrentClients.entries()) {
-		var { clientType, readonly, url } = parseClientEntry(clientEntryRaw)!;
+	const { torrentClients } = getRuntimeConfig();
+	for (const [priority, clientEntryRaw] of torrentClients.entries()) {
+		const { clientType, readonly, url } = parseClientEntry(clientEntryRaw)!;
 		switch (clientType) {
 			case Label.QBITTORRENT:
 				activeClients.push(new QBittorrent(url, priority, readonly));
@@ -141,7 +141,7 @@ export function getClients(): TorrentClient[] {
 }
 
 export function byClientHostPriority(clientHost: string | undefined): number {
-	var clients = getClients();
+	const clients = getClients();
 	return (
 		clients.find((c) => c.clientHost === clientHost)?.clientPriority ??
 		clients.length
@@ -153,22 +153,22 @@ export async function validateClientSavePaths(
 	infoHashPathMapOrig: Map<string, string>,
 	label: string,
 ): Promise<void> {
-	var { linkDirs } = getRuntimeConfig();
+	const { linkDirs } = getRuntimeConfig();
 	logger.info({
 		label,
 		message: `Validating all existing torrent save paths...`,
 	});
-	var infoHashPathMap = new Map(infoHashPathMapOrig);
+	const infoHashPathMap = new Map(infoHashPathMapOrig);
 
-	var entryDir = searchees.find((s) => !infoHashPathMap.has(s.infoHash));
+	const entryDir = searchees.find((s) => !infoHashPathMap.has(s.infoHash));
 	if (entryDir) {
 		logger.warn({
 			label,
 			message: `Not all torrents from torrentDir are in the torrent client (missing ${entryDir.name} [${entryDir.infoHash}]): https://www.cross-seed.org/docs/basics/options#torrentdir`,
 		});
 	}
-	var searcheeInfoHashes = new Set(searchees.map((s) => s.infoHash));
-	var entryClient = Array.from(infoHashPathMap.keys()).find(
+	const searcheeInfoHashes = new Set(searchees.map((s) => s.infoHash));
+	const entryClient = Array.from(infoHashPathMap.keys()).find(
 		(infoHash) => !searcheeInfoHashes.has(infoHash),
 	);
 	if (entryClient) {
@@ -179,8 +179,8 @@ export async function validateClientSavePaths(
 	}
 	if (!linkDirs.length) return;
 
-	var removedSavePaths = new Set<string>();
-	for (var searchee of searchees) {
+	const removedSavePaths = new Set<string>();
+	for (const searchee of searchees) {
 		if (!filterByContent({ ...searchee, label: Label.SEARCH })) {
 			if (infoHashPathMap.has(searchee.infoHash)) {
 				removedSavePaths.add(infoHashPathMap.get(searchee.infoHash)!);
@@ -188,8 +188,8 @@ export async function validateClientSavePaths(
 			}
 		}
 	}
-	var uniqueSavePaths = new Set(infoHashPathMap.values());
-	var ignoredSavePaths = Array.from(removedSavePaths).filter(
+	const uniqueSavePaths = new Set(infoHashPathMap.values());
+	const ignoredSavePaths = Array.from(removedSavePaths).filter(
 		(savePath) => !uniqueSavePaths.has(savePath),
 	);
 	logger.verbose({
@@ -197,7 +197,7 @@ export async function validateClientSavePaths(
 		message: `Excluded save paths from linking test due to filters: ${formatAsList(ignoredSavePaths, { sort: true, type: "unit" })}`,
 	});
 
-	for (var savePath of uniqueSavePaths) {
+	for (const savePath of uniqueSavePaths) {
 		if (ABS_WIN_PATH_REGEX.test(savePath) === (path.sep === "/")) {
 			throw new CrossSeedError(
 				`Cannot use linkDirs with cross platform cross-seed and ${label}, please run cross-seed in docker or natively to match your torrent client (https://www.cross-seed.org/docs/basics/managing-the-daemon): ${savePath}`,
@@ -223,7 +223,7 @@ export async function waitForTorrentToComplete(
 	infoHash: string,
 	options = { retries: 6 },
 ): Promise<boolean> {
-	var retries = Math.max(options.retries, 0);
+	const retries = Math.max(options.retries, 0);
 	for (let i = 0; i <= retries; i++) {
 		if ((await client.isTorrentComplete(infoHash)).orElse(false)) {
 			return true;
@@ -239,7 +239,7 @@ export function shouldRecheck(
 	searchee: Searchee,
 	decision: DecisionAnyMatch,
 ): boolean {
-	var { skipRecheck } = getRuntimeConfig();
+	const { skipRecheck } = getRuntimeConfig();
 	if (!skipRecheck) return true;
 	if (decision === Decision.MATCH_PARTIAL) return true;
 	if (hasExt(searchee.files, VIDEO_DISC_EXTENSIONS)) return true;
@@ -248,13 +248,13 @@ export function shouldRecheck(
 
 // Resuming partials
 export function getMaxRemainingBytes(decision: DecisionAnyMatch) {
-	var { matchMode, autoResumeMaxDownload } = getRuntimeConfig();
+	const { matchMode, autoResumeMaxDownload } = getRuntimeConfig();
 	if (decision !== Decision.MATCH_PARTIAL) return 0;
 	if (matchMode !== MatchMode.PARTIAL) return 0;
 	return autoResumeMaxDownload;
 }
-export var resumeSleepTime = ms("15 seconds");
-export var resumeErrSleepTime = ms("5 minutes");
+export const resumeSleepTime = ms("15 seconds");
+export const resumeErrSleepTime = ms("5 minutes");
 export function getResumeStopTime() {
 	return Date.now() + ms("1 hour");
 }
