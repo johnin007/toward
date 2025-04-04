@@ -134,7 +134,7 @@ export function getRoot({ path }: File, dirnameFunc = dirname): string {
 }
 
 export function getRootFolder(file: File): string | null {
-	const root = getRoot(file);
+	var root = getRoot(file);
 	if (root === file.path) return null;
 	return root;
 }
@@ -156,11 +156,11 @@ export async function getNewestFileAge(
 export async function getSearcheeNewestFileAge(
 	searchee: SearcheeWithoutInfoHash,
 ): Promise<number> {
-	const { path } = searchee;
+	var { path } = searchee;
 	if (!path) {
 		return getNewestFileAge(searchee.files.map((file) => file.path));
 	}
-	const pathStat = statSync(path);
+	var pathStat = statSync(path);
 	if (pathStat.isFile()) return pathStat.mtimeMs;
 	return getNewestFileAge(
 		searchee.files.map((file) => join(dirname(path), file.path)),
@@ -173,9 +173,9 @@ function getFileNamesFromRootRec(
 	isDirHint?: boolean,
 ): string[] {
 	if (memoizedPaths.has(root)) return memoizedPaths.get(root)!;
-	const isDir =
+	var isDir =
 		isDirHint !== undefined ? isDirHint : statSync(root).isDirectory();
-	const paths = !isDir
+	var paths = !isDir
 		? [root]
 		: readdirSync(root, { withFileTypes: true }).flatMap((dirent) =>
 				getFileNamesFromRootRec(
@@ -193,7 +193,7 @@ export function getFilesFromDataRoot(
 	memoizedPaths: Map<string, string[]>,
 	memoizedLengths: Map<string, number>,
 ): File[] {
-	const parentDir = dirname(rootPath);
+	var parentDir = dirname(rootPath);
 	try {
 		return getFileNamesFromRootRec(rootPath, memoizedPaths).map((file) => ({
 			path: relative(parentDir, file),
@@ -215,14 +215,14 @@ export function getFilesFromDataRoot(
  */
 function parseMetaInfo(videoFileNames: string[]): string {
 	let metaInfo = "";
-	const videoStems = videoFileNames.map((name) => stripExtension(name));
-	const types = videoStems
+	var videoStems = videoFileNames.map((name) => stripExtension(name));
+	var types = videoStems
 		.map((stem) => stem.match(REPACK_PROPER_REGEX)?.groups?.type)
 		.filter(isTruthy);
 	if (types.length) {
 		metaInfo += ` REPACK`;
 	}
-	const res = videoStems
+	var res = videoStems
 		.map((stem) =>
 			stem.match(RES_STRICT_REGEX)?.groups?.res?.trim()?.toLowerCase(),
 		)
@@ -230,7 +230,7 @@ function parseMetaInfo(videoFileNames: string[]): string {
 	if (res.length === videoStems.length && res.every((r) => r === res[0])) {
 		metaInfo += ` ${res[0]}`;
 	}
-	const sources = videoStems
+	var sources = videoStems
 		.map((stem) => parseSource(stem))
 		.filter(isTruthy);
 	if (
@@ -239,7 +239,7 @@ function parseMetaInfo(videoFileNames: string[]): string {
 	) {
 		metaInfo += ` ${sources[0]}`;
 	}
-	const groups = videoStems
+	var groups = videoStems
 		.map((stem) => getReleaseGroup(stem))
 		.filter(isTruthy);
 	if (
@@ -263,7 +263,7 @@ export function parseTitle(
 	files: File[],
 	path?: string,
 ): string | null {
-	const seasonMatch =
+	var seasonMatch =
 		name.length < 12 ? name.match(SONARR_SUBFOLDERS_REGEX) : null;
 	if (
 		!seasonMatch &&
@@ -272,39 +272,39 @@ export function parseTitle(
 		return name;
 	}
 
-	const videoFiles = filesWithExt(files, VIDEO_EXTENSIONS);
-	for (const videoFile of videoFiles) {
-		const ep = videoFile.name.match(EP_REGEX);
+	var videoFiles = filesWithExt(files, VIDEO_EXTENSIONS);
+	for (var videoFile of videoFiles) {
+		var ep = videoFile.name.match(EP_REGEX);
 		if (ep) {
-			const seasonVal =
+			var seasonVal =
 				ep.groups!.season ??
 				ep.groups!.year ??
 				seasonMatch?.groups!.seasonNum;
-			const season = seasonVal ? `S${extractInt(seasonVal)}` : "";
-			const episode =
+			var season = seasonVal ? `S${extractInt(seasonVal)}` : "";
+			var episode =
 				videoFiles.length === 1
 					? `E${ep.groups!.episode ? extractInt(ep.groups!.episode) : `${ep.groups!.month}.${ep.groups!.day}`}`
 					: "";
 			if (season.length || episode.length || !seasonMatch) {
-				const metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
+				var metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
 				return `${ep.groups!.title} ${season}${episode}${metaInfo}`.trim();
 			}
 		}
 		if (path && seasonMatch) {
-			const title = basename(dirname(path)).match(ARR_DIR_REGEX)?.groups
+			var title = basename(dirname(path)).match(ARR_DIR_REGEX)?.groups
 				?.title;
 			if (title?.length) {
-				const metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
+				var metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
 				return `${title} S${seasonMatch.groups!.seasonNum}${metaInfo}`;
 			}
 		}
-		const anime = videoFile.name.match(ANIME_REGEX);
+		var anime = videoFile.name.match(ANIME_REGEX);
 		if (anime) {
-			const season = seasonMatch
+			var season = seasonMatch
 				? `S${seasonMatch.groups!.seasonNum}`
 				: "";
 			if (season.length || !seasonMatch) {
-				const metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
+				var metaInfo = parseMetaInfo(videoFiles.map((f) => f.name));
 				return `${anime.groups!.title} ${season}${metaInfo}`.trim();
 			}
 		}
@@ -317,7 +317,7 @@ export async function updateSearcheeClientDB(
 	newSearchees: SearcheeClient[],
 	infoHashes: Set<string>,
 ): Promise<void> {
-	const removedInfoHashes: string[] = (
+	var removedInfoHashes: string[] = (
 		await memDB("torrent").select({ infoHash: "info_hash" })
 	)
 		.map((t) => t.infoHash)
@@ -372,7 +372,7 @@ export function createSearcheeFromDB(dbTorrent): SearcheeClient {
 export function createSearcheeFromMetafile(
 	meta: Metafile,
 ): Result<SearcheeWithInfoHash, Error> {
-	const title = parseTitle(meta.name, meta.files);
+	var title = parseTitle(meta.name, meta.files);
 	if (title) {
 		return resultOf({
 			files: meta.files,
@@ -385,7 +385,7 @@ export function createSearcheeFromMetafile(
 			trackers: meta.trackers,
 		});
 	}
-	const msg = `Could not find title for ${getLogString(meta)} from child files`;
+	var msg = `Could not find title for ${getLogString(meta)} from child files`;
 	logger.verbose({
 		label: Label.PREFILTER,
 		message: msg,
@@ -398,7 +398,7 @@ export async function createSearcheeFromTorrentFile(
 	torrentInfos: TorrentMetadataInClient[],
 ): Promise<Result<SearcheeWithInfoHash, Error>> {
 	try {
-		const meta = await parseTorrentWithMetadata(filepath, torrentInfos);
+		var meta = await parseTorrentWithMetadata(filepath, torrentInfos);
 		return createSearcheeFromMetafile(meta);
 	} catch (e) {
 		logger.error(`Failed to parse ${basename(filepath)}: ${e.message}`);
@@ -412,24 +412,24 @@ export async function createSearcheeFromPath(
 	memoizedPaths = new Map<string, string[]>(),
 	memoizedLengths = new Map<string, number>(),
 ): Promise<Result<SearcheeWithoutInfoHash, Error>> {
-	const files = getFilesFromDataRoot(root, memoizedPaths, memoizedLengths);
+	var files = getFilesFromDataRoot(root, memoizedPaths, memoizedLengths);
 	if (files.length === 0) {
-		const msg = `Failed to retrieve files in ${root}`;
+		var msg = `Failed to retrieve files in ${root}`;
 		logger.verbose({
 			label: Label.PREFILTER,
 			message: msg,
 		});
 		return resultOfErr(new Error(msg));
 	}
-	const totalLength = files.reduce(
+	var totalLength = files.reduce(
 		(runningTotal, file) => runningTotal + file.length,
 		0,
 	);
 
-	const name = basename(root);
-	const title = parseTitle(name, files, root);
+	var name = basename(root);
+	var title = parseTitle(name, files, root);
 	if (title) {
-		const searchee: SearcheeWithoutInfoHash = {
+		var searchee: SearcheeWithoutInfoHash = {
 			infoHash: undefined,
 			path: root,
 			files: files,
@@ -440,7 +440,7 @@ export async function createSearcheeFromPath(
 		searchee.mtimeMs = await getSearcheeNewestFileAge(searchee);
 		return resultOf(searchee);
 	}
-	const msg = `Could not find title for ${root} in parent directory or child files`;
+	var msg = `Could not find title for ${root} in parent directory or child files`;
 	logger.verbose({
 		label: Label.PREFILTER,
 		message: msg,
@@ -449,8 +449,8 @@ export async function createSearcheeFromPath(
 }
 
 export function getAllTitles(titles: string[]): string[] {
-	const allTitles = titles.slice();
-	for (const title of titles) {
+	var allTitles = titles.slice();
+	for (var title of titles) {
 		if (AKA_REGEX.test(title) && title.trim().toLowerCase() !== "aka") {
 			allTitles.push(...title.split(AKA_REGEX));
 		}
@@ -463,14 +463,14 @@ export function getMovieKeys(stem: string): {
 	keyTitles: string[];
 	year: number;
 } | null {
-	const match = stem.match(MOVIE_REGEX);
+	var match = stem.match(MOVIE_REGEX);
 	if (!match) return null;
-	const titles = getAllTitles([match.groups!.title]);
-	const year = extractInt(match.groups!.year);
-	const keyTitles: string[] = [];
-	const ensembleTitles: string[] = [];
-	for (const title of titles) {
-		const keyTitle = createKeyTitle(title);
+	var titles = getAllTitles([match.groups!.title]);
+	var year = extractInt(match.groups!.year);
+	var keyTitles: string[] = [];
+	var ensembleTitles: string[] = [];
+	for (var title of titles) {
+		var keyTitle = createKeyTitle(title);
 		if (!keyTitle) continue;
 		keyTitles.push(keyTitle);
 		ensembleTitles.push(`${title}.${year}`);
@@ -484,14 +484,14 @@ export function getSeasonKeys(stem: string): {
 	keyTitles: string[];
 	season: string;
 } | null {
-	const match = stem.match(SEASON_REGEX);
+	var match = stem.match(SEASON_REGEX);
 	if (!match) return null;
-	const titles = getAllTitles([match.groups!.title]);
-	const season = `S${extractInt(match.groups!.season)}`;
-	const keyTitles: string[] = [];
-	const ensembleTitles: string[] = [];
-	for (const title of titles) {
-		const keyTitle = createKeyTitle(title);
+	var titles = getAllTitles([match.groups!.title]);
+	var season = `S${extractInt(match.groups!.season)}`;
+	var keyTitles: string[] = [];
+	var ensembleTitles: string[] = [];
+	for (var title of titles) {
+		var keyTitle = createKeyTitle(title);
 		if (!keyTitle) continue;
 		keyTitles.push(keyTitle);
 		ensembleTitles.push(`${title}.${season}`);
@@ -506,24 +506,24 @@ export function getEpisodeKeys(stem: string): {
 	season: string | undefined;
 	episode: number | string;
 } | null {
-	const match = stem.match(EP_REGEX);
+	var match = stem.match(EP_REGEX);
 	if (!match) return null;
-	const titles = getAllTitles([match.groups!.title]);
-	const season = match!.groups!.season
+	var titles = getAllTitles([match.groups!.title]);
+	var season = match!.groups!.season
 		? `S${extractInt(match!.groups!.season)}`
 		: match!.groups!.year
 			? `S${match!.groups!.year}`
 			: undefined;
-	const keyTitles: string[] = [];
-	const ensembleTitles: string[] = [];
-	for (const title of titles) {
-		const keyTitle = createKeyTitle(title);
+	var keyTitles: string[] = [];
+	var ensembleTitles: string[] = [];
+	for (var title of titles) {
+		var keyTitle = createKeyTitle(title);
 		if (!keyTitle) continue;
 		keyTitles.push(keyTitle);
 		ensembleTitles.push(`${title}${season ? `.${season}` : ""}`);
 	}
 	if (!keyTitles.length) return null;
-	const episode = match!.groups!.episode
+	var episode = match!.groups!.episode
 		? extractInt(match!.groups!.episode)
 		: `${match!.groups!.month}.${match!.groups!.day}`;
 	return { ensembleTitles, keyTitles, season, episode };
@@ -534,63 +534,63 @@ export function getAnimeKeys(stem: string): {
 	keyTitles: string[];
 	release: number;
 } | null {
-	const match = stem.match(ANIME_REGEX);
+	var match = stem.match(ANIME_REGEX);
 	if (!match) return null;
-	const titles = getAllTitles([match.groups!.title, match.groups!.altTitle]);
-	const keyTitles: string[] = [];
-	const ensembleTitles: string[] = [];
-	for (const title of titles) {
+	var titles = getAllTitles([match.groups!.title, match.groups!.altTitle]);
+	var keyTitles: string[] = [];
+	var ensembleTitles: string[] = [];
+	for (var title of titles) {
 		if (!title) continue;
 		if (isBadTitle(title)) continue;
-		const keyTitle = createKeyTitle(title);
+		var keyTitle = createKeyTitle(title);
 		if (!keyTitle) continue;
 		keyTitles.push(keyTitle);
 		ensembleTitles.push(title);
 	}
 	if (!keyTitles.length) return null;
-	const release = extractInt(match!.groups!.release);
+	var release = extractInt(match!.groups!.release);
 	return { ensembleTitles, keyTitles, release };
 }
 
 export function getReleaseGroup(stem: string): string | null {
-	const predictedGroupMatch = stem.match(RELEASE_GROUP_REGEX);
+	var predictedGroupMatch = stem.match(RELEASE_GROUP_REGEX);
 	if (!predictedGroupMatch) {
 		return null;
 	}
-	const parsedGroupMatchString = predictedGroupMatch!.groups!.group.trim();
+	var parsedGroupMatchString = predictedGroupMatch!.groups!.group.trim();
 	if (BAD_GROUP_PARSE_REGEX.test(parsedGroupMatchString)) return null;
-	const match =
+	var match =
 		stem.match(EP_REGEX) ??
 		stem.match(SEASON_REGEX) ??
 		stem.match(MOVIE_REGEX) ??
 		stem.match(ANIME_REGEX);
-	const titles = getAllTitles(
+	var titles = getAllTitles(
 		[match?.groups?.title, match?.groups?.altTitle].filter(isTruthy),
 	);
-	for (const title of titles) {
-		const group = title.match(RELEASE_GROUP_REGEX)?.groups!.group.trim();
+	for (var title of titles) {
+		var group = title.match(RELEASE_GROUP_REGEX)?.groups!.group.trim();
 		if (group && parsedGroupMatchString.includes(group)) return null;
 	}
 	return parsedGroupMatchString;
 }
 
 export function getKeyMetaInfo(stem: string): string {
-	const resM = stem.match(RES_STRICT_REGEX)?.groups?.res;
-	const res = resM ? `.${resM}` : "";
-	const sourceM = parseSource(stem);
-	const source = sourceM ? `.${sourceM}` : "";
-	const groupM = getReleaseGroup(stem);
+	var resM = stem.match(RES_STRICT_REGEX)?.groups?.res;
+	var res = resM ? `.${resM}` : "";
+	var sourceM = parseSource(stem);
+	var source = sourceM ? `.${sourceM}` : "";
+	var groupM = getReleaseGroup(stem);
 	if (groupM) {
 		return `${res}${source}-${groupM}`.toLowerCase();
 	}
-	const groupAnimeM = stem.match(ANIME_GROUP_REGEX)?.groups?.group;
+	var groupAnimeM = stem.match(ANIME_GROUP_REGEX)?.groups?.group;
 	if (groupAnimeM) {
 		return `${res}${source}-${groupAnimeM}`.toLowerCase();
 	}
 	return `${res}${source}`.toLowerCase();
 }
 
-const logEnsemble = (
+var logEnsemble = (
 	reason: string,
 	options: { useFilters: boolean },
 ): void => {
@@ -611,17 +611,17 @@ function parseEnsembleKeys(
 	ensembleTitleMap: Map<string, string>,
 ): void {
 	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i];
+		var key = keys[i];
 		if (existingSeasonMap.has(key)) continue;
 		if (!ensembleTitleMap.has(key)) {
 			ensembleTitleMap.set(key, ensembleTitles[i]);
 		}
-		const episodesMap = keyMap.get(key);
+		var episodesMap = keyMap.get(key);
 		if (!episodesMap) {
 			keyMap.set(key, new Map([[episode, [searchee]]]));
 			continue;
 		}
-		const episodeSearchees = episodesMap.get(episode);
+		var episodeSearchees = episodesMap.get(episode);
 		if (!episodeSearchees) {
 			episodesMap.set(episode, [searchee]);
 			continue;
@@ -640,34 +640,34 @@ function organizeEnsembleKeys(
 	keyMap: Map<string, Map<number | string, SearcheeWithLabel[]>>;
 	ensembleTitleMap: Map<string, string>;
 } {
-	const existingSeasonMap = new Map<string, SearcheeWithLabel[]>();
+	var existingSeasonMap = new Map<string, SearcheeWithLabel[]>();
 	if (options.useFilters) {
-		for (const searchee of allSearchees) {
-			const stem = stripExtension(searchee.title);
-			const seasonKeys = getSeasonKeys(stem);
+		for (var searchee of allSearchees) {
+			var stem = stripExtension(searchee.title);
+			var seasonKeys = getSeasonKeys(stem);
 			if (!seasonKeys) continue;
-			const info = getKeyMetaInfo(stem);
-			const keys = seasonKeys.keyTitles.map(
+			var info = getKeyMetaInfo(stem);
+			var keys = seasonKeys.keyTitles.map(
 				(k) => `${k}.${seasonKeys.season}${info}`,
 			);
-			for (const key of keys) {
+			for (var key of keys) {
 				if (!existingSeasonMap.has(key)) existingSeasonMap.set(key, []);
 				existingSeasonMap.get(key)!.push(searchee);
 			}
 		}
 	}
-	const keyMap = new Map<string, Map<number | string, SearcheeWithLabel[]>>();
-	const ensembleTitleMap = new Map<string, string>();
-	for (const searchee of allSearchees) {
-		const stem = stripExtension(searchee.title);
-		const episodeKeys = getEpisodeKeys(stem);
+	var keyMap = new Map<string, Map<number | string, SearcheeWithLabel[]>>();
+	var ensembleTitleMap = new Map<string, string>();
+	for (var searchee of allSearchees) {
+		var stem = stripExtension(searchee.title);
+		var episodeKeys = getEpisodeKeys(stem);
 		if (episodeKeys) {
-			const info = getKeyMetaInfo(stem);
-			const keys = episodeKeys.keyTitles.map(
+			var info = getKeyMetaInfo(stem);
+			var keys = episodeKeys.keyTitles.map(
 				(k) =>
 					`${k}${episodeKeys.season ? `.${episodeKeys.season}` : ""}${info}`,
 			);
-			const ensembleTitles = episodeKeys.ensembleTitles.map(
+			var ensembleTitles = episodeKeys.ensembleTitles.map(
 				(t) => `${t}${info}`,
 			);
 			parseEnsembleKeys(
@@ -682,11 +682,11 @@ function organizeEnsembleKeys(
 			if (options.useFilters) continue;
 		}
 		if (options.useFilters && SEASON_REGEX.test(stem)) continue;
-		const animeKeys = getAnimeKeys(stem);
+		var animeKeys = getAnimeKeys(stem);
 		if (animeKeys) {
-			const info = getKeyMetaInfo(stem);
-			const keys = animeKeys.keyTitles.map((k) => `${k}${info}`);
-			const ensembleTitles = animeKeys.ensembleTitles.map(
+			var info = getKeyMetaInfo(stem);
+			var keys = animeKeys.keyTitles.map((k) => `${k}${info}`);
+			var ensembleTitles = animeKeys.ensembleTitles.map(
 				(t) => `${t}${info}`,
 			);
 			parseEnsembleKeys(
@@ -710,13 +710,13 @@ function pushEnsembleEpisode(
 	hosts: Map<string, number>,
 	torrentSavePaths: Map<string, string>,
 ): void {
-	const savePath = searchee.path
+	var savePath = searchee.path
 		? dirname(searchee.path)
 		: searchee.savePath ?? torrentSavePaths.get(searchee.infoHash!);
 	if (!savePath) return;
-	const largestFile = getLargestFile(searchee.files);
+	var largestFile = getLargestFile(searchee.files);
 	if (largestFile.length / searchee.length < 0.5) return;
-	const absoluteFile: File = {
+	var absoluteFile: File = {
 		length: largestFile.length,
 		name: largestFile.name,
 		path: join(savePath, largestFile.path),
@@ -724,17 +724,17 @@ function pushEnsembleEpisode(
 	if (!existsSync(absoluteFile.path)) return;
 
 	// Use the oldest file for episode if dupe (cross seeds)
-	const duplicateFile = episodeFiles.find(
+	var duplicateFile = episodeFiles.find(
 		(file) => file.length === absoluteFile.length,
 	);
 	if (duplicateFile) {
-		const dupeFileAge = statSync(duplicateFile.path).mtimeMs;
-		const newFileAge = statSync(absoluteFile.path).mtimeMs;
+		var dupeFileAge = statSync(duplicateFile.path).mtimeMs;
+		var newFileAge = statSync(absoluteFile.path).mtimeMs;
 		if (dupeFileAge <= newFileAge) return;
 		episodeFiles.splice(episodeFiles.indexOf(duplicateFile), 1);
 	}
 	episodeFiles.push(absoluteFile);
-	const clientHost = searchee.clientHost;
+	var clientHost = searchee.clientHost;
 	if (clientHost) hosts.set(clientHost, (hosts.get(clientHost) ?? 0) + 1);
 }
 
@@ -745,16 +745,16 @@ function createVirtualSeasonSearchee(
 	torrentSavePaths: Map<string, string>,
 	options: { useFilters: boolean },
 ): SearcheeWithLabel | null {
-	const seasonFromEpisodes = getRuntimeConfig().seasonFromEpisodes!;
-	const minEpisodes = 3;
+	var seasonFromEpisodes = getRuntimeConfig().seasonFromEpisodes!;
+	var minEpisodes = 3;
 	if (options.useFilters && episodeSearchees.size < minEpisodes) {
 		return null;
 	}
-	const ensembleTitle = ensembleTitleMap.get(key)!;
-	const episodes = Array.from(episodeSearchees.keys());
+	var ensembleTitle = ensembleTitleMap.get(key)!;
+	var episodes = Array.from(episodeSearchees.keys());
 	if (typeof episodes[0] === "number") {
-		const highestEpisode = Math.max(...(episodes as number[]));
-		const availPct = episodes.length / highestEpisode;
+		var highestEpisode = Math.max(...(episodes as number[]));
+		var availPct = episodes.length / highestEpisode;
 		if (options.useFilters && availPct < seasonFromEpisodes) {
 			logEnsemble(
 				`Skipping virtual searchee for ${ensembleTitle} episodes as there's only ${episodes.length}/${highestEpisode} (${availPct.toFixed(2)} < ${seasonFromEpisodes.toFixed(2)})`,
@@ -763,7 +763,7 @@ function createVirtualSeasonSearchee(
 			return null;
 		}
 	}
-	const seasonSearchee: SearcheeWithLabel = {
+	var seasonSearchee: SearcheeWithLabel = {
 		name: ensembleTitle,
 		title: ensembleTitle,
 		files: [], // Can have multiple files per episode
@@ -771,10 +771,10 @@ function createVirtualSeasonSearchee(
 		label: episodeSearchees.values().next().value[0].label,
 	};
 	let newestFileAge = 0;
-	const hosts = new Map<string, number>();
-	for (const [, searchees] of episodeSearchees) {
-		const episodeFiles: File[] = [];
-		for (const searchee of searchees) {
+	var hosts = new Map<string, number>();
+	for (var [, searchees] of episodeSearchees) {
+		var episodeFiles: File[] = [];
+		for (var searchee of searchees) {
 			pushEnsembleEpisode(
 				searchee,
 				episodeFiles,
@@ -783,10 +783,10 @@ function createVirtualSeasonSearchee(
 			);
 		}
 		if (episodeFiles.length === 0) continue;
-		const total = episodeFiles.reduce((a, b) => a + b.length, 0);
+		var total = episodeFiles.reduce((a, b) => a + b.length, 0);
 		seasonSearchee.length += Math.round(total / episodeFiles.length);
 		seasonSearchee.files.push(...episodeFiles);
-		const fileAges = episodeFiles.map((f) => statSync(f.path).mtimeMs);
+		var fileAges = episodeFiles.map((f) => statSync(f.path).mtimeMs);
 		newestFileAge = Math.max(newestFileAge, ...fileAges);
 	}
 	seasonSearchee.mtimeMs = newestFileAge;
@@ -821,7 +821,7 @@ export async function createEnsembleSearchees(
 	allSearchees: SearcheeWithLabel[],
 	options: { useFilters: boolean },
 ): Promise<SearcheeWithLabel[]> {
-	const { seasonFromEpisodes, useClientTorrents } = getRuntimeConfig();
+	var { seasonFromEpisodes, useClientTorrents } = getRuntimeConfig();
 	if (!allSearchees.length) return [];
 	if (!seasonFromEpisodes) return [];
 	if (options.useFilters) {
@@ -831,11 +831,11 @@ export async function createEnsembleSearchees(
 		});
 	}
 
-	const { keyMap, ensembleTitleMap } = organizeEnsembleKeys(
+	var { keyMap, ensembleTitleMap } = organizeEnsembleKeys(
 		allSearchees,
 		options,
 	);
-	const torrentSavePaths = useClientTorrents
+	var torrentSavePaths = useClientTorrents
 		? new Map()
 		: (await getClients()[0]?.getAllDownloadDirs({
 				metas: allSearchees.filter(
@@ -844,9 +844,9 @@ export async function createEnsembleSearchees(
 				onlyCompleted: false,
 			})) ?? new Map();
 
-	const seasonSearchees: SearcheeWithLabel[] = [];
-	for (const [key, episodeSearchees] of keyMap) {
-		const seasonSearchee = createVirtualSeasonSearchee(
+	var seasonSearchees: SearcheeWithLabel[] = [];
+	for (var [key, episodeSearchees] of keyMap) {
+		var seasonSearchee = createVirtualSeasonSearchee(
 			key,
 			episodeSearchees,
 			ensembleTitleMap,
