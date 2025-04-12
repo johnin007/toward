@@ -18,7 +18,7 @@ import { formatAsList } from "./utils.js";
 /**
  * error messages and map returned upon Zod validation failure
  */
-var ZodErrorMessages = {
+const ZodErrorMessages = {
 	blocklistType: `Blocklist item does not start with a valid prefix. Must be of ${formatAsList(Object.values(BlocklistType), { sort: false, style: "narrow", type: "unit" })}`,
 	blocklistEmptyValue: `Blocklist item must have a value after the colon.`,
 	blocklistRegex: `Blocklist regex is not a valid regex.`,
@@ -148,7 +148,7 @@ function addZodIssue(
  * @return transformed duration (string -> milliseconds)
  */
 function transformDurationString(durationStr: string, ctx: RefinementCtx) {
-	var duration = ms(durationStr);
+	const duration = ms(durationStr);
 	if (isNaN(duration)) {
 		// adds the error to the Zod Issues
 		addZodIssue(durationStr, ZodErrorMessages.vercel, ctx);
@@ -164,8 +164,8 @@ function transformDurationString(durationStr: string, ctx: RefinementCtx) {
  */
 function transformTorrentClients(torrentClients: string[], ctx: RefinementCtx) {
 	if (!Array.isArray(torrentClients)) return [];
-	for (var clientEntryRaw of torrentClients) {
-		var clientEntry = parseClientEntry(clientEntryRaw);
+	for (const clientEntryRaw of torrentClients) {
+		const clientEntry = parseClientEntry(clientEntryRaw);
 		if (!clientEntry) {
 			addZodIssue(clientEntryRaw, ZodErrorMessages.clientType, ctx);
 			continue;
@@ -191,9 +191,9 @@ function transformTorrentClients(torrentClients: string[], ctx: RefinementCtx) {
  */
 function transformBlocklist(blockList: string[], ctx: RefinementCtx) {
 	if (!Array.isArray(blockList)) return [];
-	var sizeTest = (value: string, existing: number) => {
+	const sizeTest = (value: string, existing: number) => {
 		if (!existing) {
-			var match = value.match(/^\d+$/);
+			const match = value.match(/^\d+$/);
 			if (match) return parseInt(match[0]);
 		}
 		addZodIssue(value, ZodErrorMessages.blocklistSize, ctx);
@@ -201,12 +201,12 @@ function transformBlocklist(blockList: string[], ctx: RefinementCtx) {
 	};
 	let sizeBelow = 0;
 	let sizeAbove = 0;
-	for (var [index, blockRaw] of blockList.entries()) {
+	for (const [index, blockRaw] of blockList.entries()) {
 		if (!blockRaw.trim().length) {
 			addZodIssue(blockRaw, ZodErrorMessages.blocklistType, ctx);
 			continue;
 		}
-		var { blocklistType, blocklistValue } = parseBlocklistEntry(blockRaw);
+		const { blocklistType, blocklistValue } = parseBlocklistEntry(blockRaw);
 		switch (blocklistType) {
 			case BlocklistType.NAME:
 				if (blocklistValue.length === 0) {
@@ -327,9 +327,9 @@ function transformBlocklist(blockList: string[], ctx: RefinementCtx) {
  */
 function isChildPath(childDir: string, parentDirs: string[]): boolean {
 	return parentDirs.some((parentDir) => {
-		var resolvedParent = resolve(parentDir);
-		var resolvedChild = resolve(childDir);
-		var relativePath = relative(resolvedParent, resolvedChild);
+		const resolvedParent = resolve(parentDir);
+		const resolvedChild = resolve(childDir);
+		const relativePath = relative(resolvedParent, resolvedChild);
 		// if the path does not start with '..' and is not absolute
 		return !(relativePath.startsWith("..") || isAbsolute(relativePath));
 	});
@@ -340,7 +340,7 @@ function isChildPath(childDir: string, parentDirs: string[]): boolean {
  * each are named after what they are intended to validate
  */
 
-export var VALIDATION_SCHEMA = z
+export const VALIDATION_SCHEMA = z
 	.object({
 		delay: z
 			.number()
@@ -797,7 +797,7 @@ export var VALIDATION_SCHEMA = z
 		return true;
 	})
 	.refine((config) => {
-		for (var linkDir of config.linkDirs) {
+		for (const linkDir of config.linkDirs) {
 			if (isChildPath(linkDir, [config.outputDir])) return false;
 			if (isChildPath(linkDir, config.dataDirs)) {
 				return false;
@@ -812,7 +812,7 @@ export var VALIDATION_SCHEMA = z
 		return true;
 	}, ZodErrorMessages.linkDirsInOtherDirs)
 	.refine((config) => {
-		for (var dataDir of config.dataDirs) {
+		for (const dataDir of config.dataDirs) {
 			if (isChildPath(dataDir, [config.outputDir])) return false;
 			if (
 				config.torrentDir &&
