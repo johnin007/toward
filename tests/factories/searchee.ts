@@ -1,6 +1,6 @@
 import { Searchee } from "../../src/searchee";
 
-export let searcheeFactory = (
+export const searcheeFactory = (
 	overrides: Partial<Searchee> = {},
 ): Searchee => {
 	return {
