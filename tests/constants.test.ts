@@ -4,7 +4,7 @@ import { EP_REGEX } from "../src/constants";
 
 describe("EP_REGEX", () => {
 	it("matches episode titles", () => {
-		let validTitles = [
+		const validTitles = [
 			"My.Show.S01E01",
 			// TODO: Add more valid titles
 		];
@@ -15,7 +15,7 @@ describe("EP_REGEX", () => {
 	});
 
 	it("does not match non-episode titles", () => {
-		let invalidTitles = [
+		const invalidTitles = [
 			"My.Show.S01",
 			// TODO: Add more invalid titles
 		];
