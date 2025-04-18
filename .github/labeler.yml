@@ -1,0 +1,62 @@
+"documentation":
+    - changed-files:
+          - any-glob-to-any-file: ["README.md"]
+"config":
+    - changed-files:
+          - any-glob-to-any-file:
+                [
+                    "src/config.template.cjs",
+                    "src/cmd.ts",
+                    "src/configSchema.ts",
+                    "src/configuration.ts",
+                    "src/runtimeConfig.ts",
+                ]
+"dependencies":
+    - changed-files:
+          - any-glob-to-any-file:
+                [
+                    "package.json",
+                    "package-lock.json",
+                    "Dockerfile",
+                    "tsconfig.json",
+                    "renovate.json",
+                    ".eslintrc.json",
+                    "src/migrations/**",
+                ]
+"bt client":
+    - changed-files:
+          - any-glob-to-any-file: ["src/clients/**"]
+"logging":
+    - changed-files:
+          - any-glob-to-any-file: ["src/logger.ts", "src/pushNotifier.ts"]
+"search":
+    - changed-files:
+          - any-glob-to-any-file:
+                [
+                    "src/dataFile.ts",
+                    "src/indexers.ts",
+                    "src/parseTorrent.ts",
+                    "src/preFilter.ts",
+                    "src/searchee.ts",
+                    "src/decide.ts",
+                    "src/torznab.ts",
+                    "src/torrent.ts",
+                    "src/action.ts",
+                ]
+"daemon":
+    - changed-files:
+          - any-glob-to-any-file:
+                [
+                    "src/server.ts",
+                    "src/jobs.ts",
+                    "src/cmd.ts",
+                    "src/server.ts",
+                    "src/auth.ts",
+                    "src/decide.ts",
+                ]
+"security":
+    - changed-files:
+          - any-glob-to-any-file: ["src/auth.ts"]
+"workflow":
+    - changed-files:
+          - any-glob-to-any-file: [".github/**"]
